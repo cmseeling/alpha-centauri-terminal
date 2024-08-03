@@ -108,7 +108,10 @@ async fn write_to_session(
 }
 
 #[tauri::command]
-async fn read_from_session(pid: PtyHandler, state: tauri::State<'_, AppState>) -> Result<String, String> {
+async fn read_from_session(
+    pid: PtyHandler,
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
     let session = state
         .sessions
         .read()
@@ -174,7 +177,10 @@ async fn end_session(pid: PtyHandler, state: tauri::State<'_, AppState>) -> Resu
 }
 
 #[tauri::command]
-async fn get_exit_status(pid: PtyHandler, state: tauri::State<'_, AppState>) -> Result<u32, String> {
+async fn get_exit_status(
+    pid: PtyHandler,
+    state: tauri::State<'_, AppState>,
+) -> Result<u32, String> {
     let session = state
         .sessions
         .read()
