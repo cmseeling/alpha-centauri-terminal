@@ -19,14 +19,28 @@ export interface ShellSession {
   dispose: () => void;
 }
 
-export const createSession = async (cols: number, rows: number) => {
+export interface CreateSessionInputs {
+  args?: string[];
+  cols?: number;
+  rows?: number;
+  currentWorkingDirectory?: string;
+  env?: {[key: string]: string};
+}
+
+export const createSession = async ({
+  args,
+  cols,
+  rows,
+  currentWorkingDirectory,
+  env
+}: CreateSessionInputs) => {
   let pid: number|null = null;
   let onShellOutputCallback =  (data: string) => {};
   let onShellOutputHasSubscriber = false;
   let onShellExitCallback = (exitCode: number) => {};
   let onShellExitHasSubscriber = false;
 
-  pid = await invoke<number>(TAURI_COMMAND_CREATE_SESSION, { args: [], cols, rows, currentWorkingDirectory: null, env: {} });
+  pid = await invoke<number>(TAURI_COMMAND_CREATE_SESSION, { args, cols, rows, currentWorkingDirectory, env });
   let sessionActive = true;
 
   const resize = (cols: number, rows: number) => {

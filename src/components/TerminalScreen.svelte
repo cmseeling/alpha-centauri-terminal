@@ -19,7 +19,7 @@
 		fitAddon.fit();
 
     // session = await createSession(terminal.cols, terminal.rows);
-    createSession(terminal.cols, terminal.rows).then((session) => {
+    createSession({cols: terminal.cols, rows: terminal.rows, env: {"foo": "bar"}}).then((session) => {
       session.onShellOutput(async (data: string) => {
         await terminal.write(data);
       });
