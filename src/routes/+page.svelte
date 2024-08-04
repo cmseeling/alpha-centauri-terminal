@@ -1,5 +1,9 @@
 <script lang="ts">
+  import NotificationBar from "../components/NotificationBar.svelte";
   import TerminalScreen from "../components/TerminalScreen.svelte";
 </script>
 
-<TerminalScreen/>
+<div>
+  <NotificationBar/>
+  <TerminalScreen/>
+</div>

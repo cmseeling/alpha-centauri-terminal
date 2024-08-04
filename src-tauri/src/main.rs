@@ -2,29 +2,25 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::{
-    collections::BTreeMap,
-    collections::HashMap,
-    ffi::OsString,
-    sync::{
+    collections::{BTreeMap, HashMap}, ffi::OsString, sync::{
         atomic::{AtomicU32, Ordering},
         Arc,
-    },
+    }
 };
 
 use tauri::{
-    async_runtime::{Mutex, RwLock},
-    AppHandle, Runtime,
+    async_runtime::{Mutex, RwLock}, AppHandle, Manager, Runtime
 };
 
 use portable_pty::{native_pty_system, Child, ChildKiller, CommandBuilder, PtyPair, PtySize};
+
+use serde::Serialize;
 
 use dir::home_dir;
 
 mod configuration {
     mod user_configuration;
-    pub use user_configuration::UserConfig;
-    pub use user_configuration::get_user_configuration;
-    pub use user_configuration::generate_default_user_config;
+    pub use user_configuration::*;
 }
 
 struct Session {
@@ -35,11 +31,21 @@ struct Session {
     reader: Mutex<Box<dyn std::io::Read + Send>>,
 }
 
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NotificationEvent {
+    // Level: 1 = info, 2 = warn, 3 = error
+    level: u16,
+    message: String,
+    details: String,
+}
+
 #[derive(Default)]
 struct AppState {
     session_id: AtomicU32,
     sessions: RwLock<BTreeMap<PtyHandler, Arc<Session>>>,
     user_configuration: RwLock<configuration::UserConfig>,
+    notifications: RwLock<Vec<NotificationEvent>>
 }
 
 type PtyHandler = u32;
@@ -127,6 +133,7 @@ async fn write_to_session(
 async fn read_from_session(
     pid: PtyHandler,
     state: tauri::State<'_, AppState>,
+    _app_handle: AppHandle,
 ) -> Result<String, String> {
     let session = state
         .sessions
@@ -142,6 +149,12 @@ async fn read_from_session(
         .await
         .read(&mut buf)
         .map_err(|e| e.to_string())?;
+
+    for notification in state.notifications.read().await.iter() {
+        _app_handle.emit_all("notification-event", notification).unwrap();
+    }
+    state.notifications.write().await.clear();
+
     Ok(String::from_utf8_lossy(&buf[..n]).to_string())
 }
 
@@ -215,12 +228,11 @@ async fn get_exit_status(
 }
 
 fn main() {
-    // let state = AppState::default();
-
     #[cfg(debug_assertions)]
     println!("Attempting to retrieve user config file");
     let home_path = home_dir().unwrap();
     let config_file_path = format!("{}\\.alphacentauri.config.json", home_path.to_str().unwrap());
+    let mut notification_event = None;
     let user_config = match configuration::get_user_configuration(&config_file_path) {
         Ok(user_config) => {
             // let mut state_user_config = state.user_configuration.write().await;
@@ -231,6 +243,11 @@ fn main() {
         },
         Err(e) => {
             println!("There was a problem getting the user config: {:?}", e);
+            notification_event = Some(NotificationEvent {
+                level: 2,
+                message: String::from("There was an error getting your configuration settings."),
+                details: format!("{}", e),
+            });
             configuration::generate_default_user_config()
         }
     };
@@ -238,9 +255,12 @@ fn main() {
     let state = AppState {
         session_id: AtomicU32::default(),
         sessions: RwLock::default(),
-        user_configuration: RwLock::new(user_config)
+        user_configuration: RwLock::new(user_config),
+        notifications: match notification_event {
+            Some(event) => RwLock::new(Vec::from([event])),
+            None => RwLock::default()
+        }
     };
-    
 
     tauri::Builder::default()
         .manage(state)
