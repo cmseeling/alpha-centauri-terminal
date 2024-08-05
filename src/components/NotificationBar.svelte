@@ -1,5 +1,6 @@
 <script lang="ts">
   import { listen } from '@tauri-apps/api/event'
+  import { invoke } from "@tauri-apps/api";
   import { onMount } from 'svelte';
 
   import { createCollapsible, melt } from '@melt-ui/svelte';
@@ -11,6 +12,8 @@
     message: string;
     details: string;
   }
+
+  const TAURI_COMMAND_GET_STARTUP_NOTIFICATIONS = "get_startup_notifications";
 
   let level: number = 0;
   let message: string|undefined = undefined;
@@ -61,7 +64,8 @@
         }
       }
     }).then((unlistenFn) => {
-      unlisten = unlistenFn
+      unlisten = unlistenFn;
+      invoke(TAURI_COMMAND_GET_STARTUP_NOTIFICATIONS);
     });
 
     return () => {

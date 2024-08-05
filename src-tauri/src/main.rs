@@ -2,14 +2,17 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::{
-    collections::{BTreeMap, HashMap}, ffi::OsString, sync::{
+    collections::{BTreeMap, HashMap},
+    ffi::OsString,
+    sync::{
         atomic::{AtomicU32, Ordering},
         Arc,
-    }
+    },
 };
 
 use tauri::{
-    async_runtime::{Mutex, RwLock}, AppHandle, Manager, Runtime
+    async_runtime::{Mutex, RwLock},
+    AppHandle, Manager,
 };
 
 use portable_pty::{native_pty_system, Child, ChildKiller, CommandBuilder, PtyPair, PtySize};
@@ -45,13 +48,47 @@ struct AppState {
     session_id: AtomicU32,
     sessions: RwLock<BTreeMap<PtyHandler, Arc<Session>>>,
     user_configuration: RwLock<configuration::UserConfig>,
-    notifications: RwLock<Vec<NotificationEvent>>
+    startup_notifications: RwLock<Vec<NotificationEvent>>,
 }
 
 type PtyHandler = u32;
 
+fn emit_error_notification(
+    log_message: String,
+    level: u16,
+    friendly_message: String,
+    details: String,
+    app_handle: AppHandle,
+) {
+    #[cfg(debug_assertions)]
+    println!("{}", log_message);
+    let notification = NotificationEvent {
+        level: level,
+        message: friendly_message,
+        details: details,
+    };
+    app_handle
+        .emit_all("notification-event", notification)
+        .unwrap();
+}
+
 #[tauri::command]
-async fn create_session<R: Runtime>(
+async fn get_startup_notifications(
+    state: tauri::State<'_, AppState>,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    for notification in state.startup_notifications.read().await.iter() {
+        app_handle
+            .emit_all("notification-event", notification)
+            .unwrap();
+    }
+    state.startup_notifications.write().await.clear();
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn create_session(
     args: Option<Vec<String>>,
     cols: Option<u16>,
     rows: Option<u16>,
@@ -59,7 +96,7 @@ async fn create_session<R: Runtime>(
     env: Option<HashMap<String, String>>,
 
     state: tauri::State<'_, AppState>,
-    _app_handle: AppHandle<R>,
+    app_handle: AppHandle,
 ) -> Result<PtyHandler, String> {
     let user_config = state.user_configuration.read().await;
 
@@ -77,9 +114,36 @@ async fn create_session<R: Runtime>(
             pixel_width: 0,
             pixel_height: 0,
         })
-        .map_err(|e| e.to_string())?;
-    let writer = pair.master.take_writer().map_err(|e| e.to_string())?;
-    let reader = pair.master.try_clone_reader().map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            emit_error_notification(
+                format!("Error on pty_system.openpty: {:?}", e),
+                3,
+                String::from("There was an error creating the shell session."),
+                format!("{:?}", e),
+                app_handle.clone(),
+            );
+            e.to_string()
+        })?;
+    let writer = pair.master.take_writer().map_err(|e| {
+        emit_error_notification(
+            format!("Error on pair.master.take_writer: {:?}", e),
+            3,
+            String::from("There was an error creating the shell session."),
+            format!("{:?}", e),
+            app_handle.clone(),
+        );
+        e.to_string()
+    })?;
+    let reader = pair.master.try_clone_reader().map_err(|e| {
+        emit_error_notification(
+            format!("Error on pair.master.try_clone_reader: {:?}", e),
+            3,
+            String::from("There was an error creating the shell session."),
+            format!("{:?}", e),
+            app_handle.clone(),
+        );
+        e.to_string()
+    })?;
 
     #[cfg(debug_assertions)]
     println!("Launching shell from {}", &user_config.shell.program);
@@ -92,7 +156,16 @@ async fn create_session<R: Runtime>(
     for (k, v) in env.iter() {
         cmd.env(OsString::from(k), OsString::from(v));
     }
-    let child = pair.slave.spawn_command(cmd).map_err(|e| e.to_string())?;
+    let child = pair.slave.spawn_command(cmd).map_err(|e| {
+        emit_error_notification(
+            format!("Error on pair.slave.spawn_command: {:?}", e),
+            3,
+            String::from("There was an error creating the shell session."),
+            format!("{:?}", e),
+            app_handle.clone(),
+        );
+        e.to_string()
+    })?;
     let child_killer = child.clone_killer();
     let handler = state.session_id.fetch_add(1, Ordering::Relaxed);
 
@@ -104,6 +177,7 @@ async fn create_session<R: Runtime>(
         reader: Mutex::new(reader),
     });
     state.sessions.write().await.insert(handler, pair);
+
     Ok(handler)
 }
 
@@ -112,50 +186,79 @@ async fn write_to_session(
     pid: PtyHandler,
     data: String,
     state: tauri::State<'_, AppState>,
+    app_handle: AppHandle,
 ) -> Result<(), String> {
-    let session = state
-        .sessions
-        .read()
-        .await
-        .get(&pid)
-        .ok_or("Unavaliable pid")?
-        .clone();
-    session
-        .writer
-        .lock()
-        .await
-        .write_all(data.as_bytes())
-        .map_err(|e| e.to_string())?;
-    Ok(())
+    match state.sessions.read().await.get(&pid) {
+        Some(session) => session
+            .clone()
+            .writer
+            .lock()
+            .await
+            .write_all(data.as_bytes())
+            .map_err(|e| {
+                emit_error_notification(
+                    format!(
+                        "Error on session.clone().writer.lock().await.write_all: {:?}",
+                        e
+                    ),
+                    3,
+                    String::from("There was an error writing to the shell session."),
+                    format!("{:?}", e),
+                    app_handle,
+                );
+                e.to_string()
+            }),
+        None => {
+            emit_error_notification(
+                format!(
+                    "Error on state.sessions.read().await.get - session with pid={:?} not found",
+                    pid
+                ),
+                3,
+                String::from("There was an error writing to the shell session."),
+                format!("Session not found for pid {:?}", pid),
+                app_handle,
+            );
+            Err(String::from("Unavailable pid"))
+        }
+    }
 }
 
 #[tauri::command]
 async fn read_from_session(
     pid: PtyHandler,
     state: tauri::State<'_, AppState>,
-    _app_handle: AppHandle,
+    app_handle: AppHandle,
 ) -> Result<String, String> {
-    let session = state
-        .sessions
-        .read()
-        .await
-        .get(&pid)
-        .ok_or("Unavaliable pid")?
-        .clone();
-    let mut buf = [0u8; 1024];
-    let n = session
-        .reader
-        .lock()
-        .await
-        .read(&mut buf)
-        .map_err(|e| e.to_string())?;
-
-    for notification in state.notifications.read().await.iter() {
-        _app_handle.emit_all("notification-event", notification).unwrap();
+    match state.sessions.read().await.get(&pid) {
+        Some(session) => {
+            let mut buffer = [0u8; 1024];
+            let n = session.reader.lock().await.read(&mut buffer).map_err(|e| {
+                emit_error_notification(
+                    format!("Error on session.reader.lock().await.read: {:?}", e),
+                    3,
+                    String::from("There was an error reading from the shell session."),
+                    format!("{:?}", e),
+                    app_handle,
+                );
+                e.to_string()
+            })?;
+            Ok(String::from_utf8_lossy(&buffer[..n]).to_string())
+        }
+        None => {
+            emit_error_notification(
+                format!(
+                    "Error on state.sessions.read().await.get - session with pid={:?} not found",
+                    pid
+                ),
+                3,
+                String::from("There was an error reading from the shell session."),
+                format!("Session not found for pid {:?}", pid),
+                app_handle,
+            );
+            Err(String::from("Unavailable pid"))
+        }
     }
-    state.notifications.write().await.clear();
-
-    Ok(String::from_utf8_lossy(&buf[..n]).to_string())
 }
 
 #[tauri::command]
@@ -164,74 +267,129 @@ async fn resize(
     cols: u16,
     rows: u16,
     state: tauri::State<'_, AppState>,
+    app_handle: AppHandle,
 ) -> Result<(), String> {
-    let session = state
-        .sessions
-        .read()
-        .await
-        .get(&pid)
-        .ok_or("Unavaliable pid")?
-        .clone();
-    session
-        .pair
-        .lock()
-        .await
-        .master
-        .resize(PtySize {
-            rows,
-            cols,
-            pixel_width: 0,
-            pixel_height: 0,
-        })
-        .map_err(|e| e.to_string())?;
-    Ok(())
+    match state.sessions.read().await.get(&pid) {
+        Some(session) => session
+            .pair
+            .lock()
+            .await
+            .master
+            .resize(PtySize {
+                rows,
+                cols,
+                pixel_width: 0,
+                pixel_height: 0,
+            })
+            .map_err(|e| {
+                emit_error_notification(
+                    format!("Error on session.pair.lock().await.master.resize: {:?}", e),
+                    3,
+                    String::from("There was an error resizing the shell session."),
+                    format!("{:?}", e),
+                    app_handle,
+                );
+                e.to_string()
+            }),
+        None => {
+            emit_error_notification(
+                format!(
+                    "Error on state.sessions.read().await.get - session with pid={:?} not found",
+                    pid
+                ),
+                3,
+                String::from("There was an error resizing the shell session."),
+                format!("Session not found for pid {:?}", pid),
+                app_handle,
+            );
+            Err(String::from("Unavailable pid"))
+        }
+    }
 }
 
 #[tauri::command]
-async fn end_session(pid: PtyHandler, state: tauri::State<'_, AppState>) -> Result<(), String> {
-    let session = state
-        .sessions
-        .read()
-        .await
-        .get(&pid)
-        .ok_or("Unavaliable pid")?
-        .clone();
-    session
-        .child_killer
-        .lock()
-        .await
-        .kill()
-        .map_err(|e| e.to_string())?;
-    Ok(())
+async fn end_session(
+    pid: PtyHandler,
+    state: tauri::State<'_, AppState>,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    match state.sessions.read().await.get(&pid) {
+        Some(session) => session.child_killer.lock().await.kill().map_err(|e| {
+            emit_error_notification(
+                format!("Error on session.child_killer.lock().await.kill(): {:?}", e),
+                3,
+                String::from("There was an error ending the shell session."),
+                format!("{:?}", e),
+                app_handle,
+            );
+            e.to_string()
+        }),
+        None => {
+            emit_error_notification(
+                format!(
+                    "Error on state.sessions.read().await.get - session with pid={:?} not found",
+                    pid
+                ),
+                3,
+                String::from("There was an error ending the shell session."),
+                format!("Session not found for pid {:?}", pid),
+                app_handle,
+            );
+            Err(String::from("Unavailable pid"))
+        }
+    }
 }
 
 #[tauri::command]
 async fn get_exit_status(
     pid: PtyHandler,
     state: tauri::State<'_, AppState>,
+    app_handle: AppHandle,
 ) -> Result<u32, String> {
-    let session = state
-        .sessions
-        .read()
-        .await
-        .get(&pid)
-        .ok_or("Unavaliable pid")?
-        .clone();
-    let exitstatus = session
-        .child
-        .lock()
-        .await
-        .wait()
-        .map_err(|e| e.to_string())?
-        .exit_code();
-    Ok(exitstatus)
+    match state.sessions.read().await.get(&pid) {
+        Some(session) => {
+            let exit_status = session
+                .child
+                .lock()
+                .await
+                .wait()
+                .map_err(|e| {
+                    emit_error_notification(
+                        format!("Error on session.child.lock().await.wait(): {:?}", e),
+                        3,
+                        String::from("There was an error reading the shell session exit status."),
+                        format!("{:?}", e),
+                        app_handle,
+                    );
+                    e.to_string()
+                })?
+                .exit_code();
+            Ok(exit_status)
+        }
+        None => {
+            emit_error_notification(
+                format!(
+                    "Error on state.sessions.read().await.get - session with pid={:?} not found",
+                    pid
+                ),
+                3,
+                String::from("There was an error reading the shell session exit status."),
+                format!("Session not found for pid {:?}", pid),
+                app_handle,
+            );
+            Err(String::from("Unavailable pid"))
+        }
+    }
 }
 
 fn main() {
     #[cfg(debug_assertions)]
     println!("Attempting to retrieve user config file");
     let home_path = home_dir().unwrap();
-    let config_file_path = format!("{}\\.alphacentauri.config.json", home_path.to_str().unwrap());
+    let config_file_path = format!(
+        "{}\\.alphacentauri.config.json",
+        home_path.to_str().unwrap()
+    );
     let mut notification_event = None;
     let user_config = match configuration::get_user_configuration(&config_file_path) {
         Ok(user_config) => {
@@ -240,7 +398,7 @@ fn main() {
             #[cfg(debug_assertions)]
             println!("Successfully retrieved user config");
             user_config
-        },
+        }
         Err(e) => {
             println!("There was a problem getting the user config: {:?}", e);
             notification_event = Some(NotificationEvent {
@@ -256,10 +414,10 @@ fn main() {
         session_id: AtomicU32::default(),
         sessions: RwLock::default(),
         user_configuration: RwLock::new(user_config),
-        notifications: match notification_event {
+        startup_notifications: match notification_event {
             Some(event) => RwLock::new(Vec::from([event])),
-            None => RwLock::default()
-        }
+            None => RwLock::default(),
+        },
     };
 
     tauri::Builder::default()
@@ -270,7 +428,8 @@ fn main() {
             read_from_session,
             resize,
             end_session,
-            get_exit_status
+            get_exit_status,
+            get_startup_notifications
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
