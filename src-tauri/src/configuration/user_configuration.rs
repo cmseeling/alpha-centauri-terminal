@@ -65,9 +65,9 @@ use serde::{Deserialize, Serialize};
   impl fmt::Display for UserConfigError {
       fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
           match &self {
-              UserConfigError::Read(e) => write!(f, "Unable to load User Configuration file.\n{}", e),
-              UserConfigError::Write(e) => write!(f, "Unable to save User Configuration file.\n{}", e),
-              UserConfigError::Parse(e) => write!(f, "User Configuration file found, but could not be parsed.\n{}", e),
+              UserConfigError::Read(e) => write!(f, "<div class='friendly-error-message'>Unable to load User Configuration file.</div><div class='raw-error'>{}</div>", e),
+              UserConfigError::Write(e) => write!(f, "<div class='friendly-error-message'>Unable to save User Configuration file.</div><div class='raw-error'>{}</div>", e),
+              UserConfigError::Parse(e) => write!(f, "<div class='friendly-error-message'>User Configuration file found, but could not be parsed.</div><div class='raw-error'>{}</div>", e),
           }
       }
   }
@@ -79,10 +79,10 @@ use serde::{Deserialize, Serialize};
           Ok(json) => {
               match fs::write(file_loc, json) {
                   Ok(_) => Ok(()),
-                  Err(e) => Err(UserConfigError::Write(e.to_string()))
+                  Err(e) => Err(UserConfigError::Write(format!("{:?}", e)))
               }
           },
-          Err(e) => Err(UserConfigError::Write(e.to_string()))
+          Err(e) => Err(UserConfigError::Write(format!("{:?}", e)))
       }
   }
 
@@ -95,9 +95,9 @@ use serde::{Deserialize, Serialize};
             match fs::read_to_string(file_loc) {
                 Ok(json) => match serde_json::from_str(&json) {
                         Ok(config) => Ok(config),
-                        Err(e) => Err(UserConfigError::Parse(e.to_string()))
+                        Err(e) => Err(UserConfigError::Parse(format!("{:?}", e)))
                     },
-                Err(e) => Err(UserConfigError::Read(e.to_string()))
+                Err(e) => Err(UserConfigError::Read(format!("{:?}", e)))
             }
         },
         Err(_) => {

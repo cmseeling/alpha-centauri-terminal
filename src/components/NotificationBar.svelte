@@ -4,12 +4,7 @@
 
   import { createCollapsible, melt } from '@melt-ui/svelte';
   import { slide } from 'svelte/transition';
-  import XmarkSolid from '$lib/components/svgs/xmark-solid.svelte';
-
-  const {
-    elements: { root, content, trigger },
-    states: { open },
-  } = createCollapsible();
+  import IconCloseOutline from 'virtual:icons/carbon/close-outline';
 
   interface NotificationEvent {
     level: number;
@@ -22,6 +17,17 @@
   let details: string|undefined = undefined;
   let bgcolor: string = '#c62828';
   let textColor: string = 'white';
+
+  const {
+    elements: { root, content, trigger },
+    states: { open },
+  } = createCollapsible();
+
+  const clearNotifcation = () => {
+    level = 0;
+    message = undefined;
+    details = undefined;
+  }
 
   onMount(() => {
     let unlisten: () => void;
@@ -58,33 +64,6 @@
       unlisten = unlistenFn
     });
 
-    level = 3;
-    message = "test"
-    details = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sollicitudin velit nisl, id iaculis sapien tristique sed. Aliquam lobortis ut dui et facilisis. Quisque tempus venenatis odio non venenatis. Mauris in libero lobortis, congue augue nec, vehicula metus. Nunc interdum sapien non justo sagittis, et faucibus magna cursus. Nam rutrum maximus orci id accumsan. Mauris fermentum non diam ut elementum. Donec nunc felis, tincidunt in nibh a, ornare tincidunt velit. Etiam non turpis in purus ullamcorper facilisis. Praesent iaculis varius bibendum." 
-
-    switch(level) {
-      case 1: {
-        bgcolor ='#1565c0';
-        textColor = 'white';
-        break;
-      }
-      case 2: {
-        bgcolor = '#ffc107';
-        textColor = '#37474f';
-        break;
-      }
-      case 3: {
-        bgcolor = '#c62828';
-        textColor = 'white';
-        break;
-      }
-      default: {
-        bgcolor = '#c62828';
-        textColor = 'white';
-        break;
-      }
-    }
-
     return () => {
       if(unlisten) {
         unlisten();
@@ -99,20 +78,22 @@
     {message}
   </div>
   <div class="close-button-container">
-    <XmarkSolid />
+    <button class="close-button" on:click={clearNotifcation}>
+      <IconCloseOutline style="font-size:1.5em"/>
+    </button>
   </div>
   {#if details !== undefined}
   <div use:melt={$root} class="root">
     <div class="header">
       <button use:melt={$trigger} class="collapse-button">
-        See debugging details
+        See details
       </button>
     </div>
     {#if $open}
       <div use:melt={$content} transition:slide>
         <div class="collapsible">
           <div class="item">
-            <span>{details}</span>
+            {@html details}
           </div>
         </div>
       </div>
@@ -136,7 +117,21 @@
 
   .close-button-container {
     position: absolute;
+    top: 0;
     right: 0;
+    margin-top: .5em;
+    margin-right: .5em;
+  }
+
+  .close-button {
+    box-shadow: none;
+    background-color: transparent;
+    border: 0;
+    opacity: .65;
+  }
+
+  .close-button:hover {
+    opacity: 1;
   }
 
   .message {
@@ -161,7 +156,7 @@
   .collapse-button {
     border-radius: 180px;
 
-    font-size: 0.75rem;
+    font-size: 0.6rem;
 
     box-shadow: 0 10px 15px -3px rgb(var(--color-black) / 0.1),
       0 4px 6px -4px rgb(var(--color-black) / 0.1);
@@ -180,13 +175,10 @@
 
     box-shadow: 0 10px 15px -3px rgb(var(--color-black) / 0.1),
       0 4px 6px -4px rgb(var(--color-black) / 0.1);
-  }
 
-  .item span {
     font-size: .75rem;
     line-height: 25px;
-
-    color: rgb(var(--color-magnum-800) / 1);
+    color: #424242;
   }
 
   .item::first-of-type {
