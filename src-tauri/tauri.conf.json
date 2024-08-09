@@ -6,7 +6,7 @@
     "distDir": "../build"
   },
   "package": {
-    "productName": "alpha-centauri-tau",
+    "productName": "alpha-centauri-terminal",
     "version": "0.0.0"
   },
   "tauri": {
@@ -15,11 +15,23 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true,
+        "setMinSize": true
       }
     },
     "windows": [
       {
-        "title": "alpha-centauri-tau",
+        "title": "Alpha CenTauri Terminal",
         "width": 800,
         "height": 600
       }

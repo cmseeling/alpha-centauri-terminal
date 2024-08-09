@@ -2,10 +2,9 @@
   import { listen } from '@tauri-apps/api/event'
   import { invoke } from "@tauri-apps/api";
   import { onMount } from 'svelte';
-
   import { createCollapsible, melt } from '@melt-ui/svelte';
   import { slide } from 'svelte/transition';
-  import IconCloseOutline from 'virtual:icons/carbon/close-outline';
+  import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 
   interface NotificationEvent {
     level: number;
@@ -83,7 +82,7 @@
   </div>
   <div class="close-button-container">
     <button class="close-button" on:click={clearNotifcation}>
-      <IconCloseOutline style="font-size:1.5em"/>
+      <CloseCircleOutline style="font-size:1.5em"/>
     </button>
   </div>
   {#if details !== undefined}
@@ -110,7 +109,7 @@
 <style>
   .notification-bar {
     background-color: var(--bgcolor, #c62828);
-    position: absolute;
+    position: fixed;
     width: 100%;
     padding: 0.5em 0;
     display: flex;
@@ -120,7 +119,7 @@
   }
 
   .close-button-container {
-    position: absolute;
+    position: fixed;
     top: 0;
     right: 0;
     margin-top: .5em;

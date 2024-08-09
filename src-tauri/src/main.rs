@@ -16,7 +16,7 @@ use tauri::{
     AppHandle, Manager, Runtime,
 };
 
-use portable_pty::{native_pty_system, Child, ChildKiller, CommandBuilder, PtyPair, PtySize};
+use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize};
 
 use serde::Serialize;
 
@@ -30,7 +30,6 @@ mod configuration {
 struct Session {
     pair: Mutex<PtyPair>,
     child: Mutex<Box<dyn Child + Send + Sync>>,
-    child_killer: Mutex<Box<dyn ChildKiller + Send + Sync>>,
     writer: Mutex<Box<dyn std::io::Write + Send>>,
     reader: Mutex<Box<dyn std::io::Read + Send>>,
 }
@@ -46,7 +45,7 @@ struct NotificationEvent {
 
 #[derive(Default)]
 struct AppState {
-    session_id: AtomicU32,
+    last_session_id: AtomicU32,
     sessions: RwLock<BTreeMap<PtyHandler, Arc<Session>>>,
     user_configuration: RwLock<configuration::UserConfig>,
     startup_notifications: RwLock<Vec<NotificationEvent>>,
@@ -167,13 +166,11 @@ async fn create_session<R: Runtime>(
         );
         e.to_string()
     })?;
-    let child_killer = child.clone_killer();
-    let handler = state.session_id.fetch_add(1, Ordering::Relaxed);
+    let handler = state.last_session_id.fetch_add(1, Ordering::Relaxed);
 
     let pair = Arc::new(Session {
         pair: Mutex::new(pair),
         child: Mutex::new(child),
-        child_killer: Mutex::new(child_killer),
         writer: Mutex::new(writer),
         reader: Mutex::new(reader),
     });
@@ -188,6 +185,7 @@ async fn write_to_session(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    println!("Received {}", &data);
     match state.sessions.read().await.get(&pid) {
         Some(session) => session
             .clone()
@@ -253,6 +251,33 @@ async fn read_from_session(
     Ok(String::from_utf8_lossy(&buf[..n]).to_string())
 }
 
+// #[tauri::command]
+// async fn get_current_directory(pid: PtyHandler, state: tauri::State<'_, AppState>, app_handle: AppHandle,) -> Result<String, String> {
+//     match state.sessions.read().await.get(&pid) {
+//         Some(session) => {
+//             let child = session
+//                 .child
+//                 .lock()
+//                 .await;
+//             child.
+//             Ok(String::from("ok"))
+//         },
+//         None => {
+//             emit_error_notification(
+//                 format!(
+//                     "Error on state.sessions.read().await.get - session with pid={:?} not found",
+//                     pid
+//                 ),
+//                 3,
+//                 String::from("There was an error writing to the shell session."),
+//                 format!("Session not found for pid {:?}", pid),
+//                 app_handle,
+//             );
+//             Err(String::from("Unavailable pid"))
+//         }
+//     }
+// }
+
 #[tauri::command]
 async fn resize(
     pid: PtyHandler,
@@ -305,10 +330,11 @@ async fn end_session(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    println!("ending session for pid: {:?}", pid);
     match state.sessions.read().await.get(&pid) {
-        Some(session) => session.child_killer.lock().await.kill().map_err(|e| {
+        Some(session) => session.child.lock().await.kill().map_err(|e| {
             emit_error_notification(
-                format!("Error on session.child_killer.lock().await.kill(): {:?}", e),
+                format!("Error on session.child.lock().await.kill(): {:?}", e),
                 3,
                 String::from("There was an error ending the shell session."),
                 format!("{:?}", e),
@@ -383,7 +409,7 @@ fn main() {
     };
 
     let state = AppState {
-        session_id: AtomicU32::default(),
+        last_session_id: AtomicU32::default(),
         sessions: RwLock::default(),
         user_configuration: RwLock::new(user_config),
         startup_notifications: match notification_event {
@@ -393,6 +419,7 @@ fn main() {
     };
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(state)
         .invoke_handler(tauri::generate_handler![
             create_session,

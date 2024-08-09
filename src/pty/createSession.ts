@@ -94,6 +94,7 @@ export const createSession = async ({
   }
 
   const stop = () => {
+    console.log('stopping shell session');
     kill();
     sessionActive = false;
     pid = null;
