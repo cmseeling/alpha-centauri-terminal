@@ -51,23 +51,25 @@
   }
 </script>
 
-<div use:melt={$root} class="container">
+<div use:melt={$root} class="flex flex-col h-full">
   {#if tabs.length > 1}
-  <div use:melt={$list} class="tab-list">
+  <div use:melt={$list} class="flex shrink-0 flex-row items-center">
     {#each tabs as triggerItem (triggerItem.id)}
-      <div use:melt={$trigger(triggerItem.id)} class="trigger">
+      <div use:melt={$trigger(triggerItem.id)}
+            class="trigger flex items-center justify-center border-r border-black rounded-t-lg
+            bg-slate-700 text-white opacity-75 ps-2 pe-2 h-6 data-[state=active]:opacity-100 cursor-pointer">
         {triggerItem.title}
-        <button class="close-tab-button" on:click={() => closeTab(triggerItem.id)}>
+        <button class="bg-slate-700 text-white border-0 pt-0.5 pl-2" on:click={() => closeTab(triggerItem.id)}>
           <CloseCircleOutline style="font-size:1em"/>
         </button>
       </div>
     {/each}
-    <button class="add-button" on:click={addNewTab}>
-      <Add />
+    <button class="h-5 border border-black w-6 ps-0.5 pe-0.5" on:click={addNewTab}>
+      <Add style="font-size:1em"/>
     </button>
   </div>
   {/if}
-  <div class="tab-content" bind:clientHeight={$height} bind:clientWidth={$width} on:resize={(event) => console.log(event)}>
+  <div class="h-full bg-slate-700 overflow-y-hidden" bind:clientHeight={$height} bind:clientWidth={$width}>
     {#each tabs as tabItem (tabItem.id)}
       <div use:melt={$content(tabItem.id)}>
         <TerminalScreen screenManagementDispatch={handleCommandDispatch}/>
@@ -75,62 +77,3 @@
     {/each}
   </div>
 </div>
-
-<style>
-  .container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .tab-list {
-    display: flex;
-    flex-shrink: 0;
-    flex-direction: row;
-    align-items: center;
-  }
-  
-  .trigger {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    cursor: pointer;
-
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-    border-left: 0px;
-    border-top: 0px;
-    border-bottom: 0px;
-    border-right: 1px solid black;
-
-    background-color: #263238;
-    color: white;
-
-    opacity: 75%;
-
-    height: 1.4em;
-    padding-inline-start: 0.5em;
-
-    &[data-state='active'] {
-      opacity: 100%;
-    }
-  }
-
-  .close-tab-button {
-    background-color: #263238;
-    color: white;
-    border: 0;
-    padding-top: 0.4em;
-  }
-
-  .add-button {
-    height: 1.5em;
-  }
-
-  .tab-content {
-    height: 100%;
-    overflow-y: hidden;
-    background-color: #263238;
-  }
-</style>

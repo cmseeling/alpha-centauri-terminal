@@ -21,7 +21,9 @@
   let update = () => {
     resizing = false;
     fitAddon.fit();
-    shellSession.resize(terminal.cols, terminal.rows);
+    if(shellSession) {
+      shellSession.resize(terminal.cols, terminal.rows);
+    }
   }
 
   const requestUpdate = () => {
@@ -97,9 +99,11 @@
 
     return () => {
       cancelAnimationFrame(frame);
-      shellSession.stop()
+      if(shellSession) {
+        ;
+      }
     }
-  })
+  });
 
   function toHex(str: string) {
     var result = '';

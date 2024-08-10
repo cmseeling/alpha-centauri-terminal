@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import { createCollapsible, melt } from '@melt-ui/svelte';
   import { slide } from 'svelte/transition';
+  import { addToast } from '$lib/Toaster.svelte'
   import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 
   interface NotificationEvent {
@@ -31,8 +32,20 @@
     details = undefined;
   }
 
+  function create() {
+    addToast({
+      data: {
+        title: 'Success',
+        description: 'The resource was created!',
+        color: 'green'
+      }
+    })
+  }
+
   onMount(() => {
     let unlisten: () => void;
+
+    create()
 
     listen<NotificationEvent>('notification-event', ({payload}) => {
       console.log('got event')
