@@ -368,7 +368,10 @@ async fn get_exit_status(
         Some(session) => {
             let exit_status_result = session.clone().child.lock().await.wait().map_err(|e| {
                 emit_error_notification(
-                    format!("Error on session.clone().child.lock().await.wait(): {:?}", e),
+                    format!(
+                        "Error on session.clone().child.lock().await.wait(): {:?}",
+                        e
+                    ),
                     3,
                     String::from("There was an error getting the shell session exit code."),
                     format!("{:?}", e),
@@ -380,7 +383,10 @@ async fn get_exit_status(
                 Ok(exit_status) => Ok(exit_status.exit_code()),
                 Err(e) => {
                     emit_error_notification(
-                        format!("Error on session.clone().child.lock().await.wait(): {:?}", e),
+                        format!(
+                            "Error on session.clone().child.lock().await.wait(): {:?}",
+                            e
+                        ),
                         3,
                         String::from("There was an error getting the shell session exit code."),
                         format!("{:?}", e),
@@ -389,7 +395,7 @@ async fn get_exit_status(
                     Err(e)
                 }
             }
-        },
+        }
         None => {
             emit_error_notification(
                 format!(
@@ -410,10 +416,16 @@ fn main() {
     #[cfg(debug_assertions)]
     println!("Attempting to retrieve user config file");
     let home_path = home_dir().unwrap();
+
+    #[cfg(target_os = "windows")]
     let config_file_path = format!(
         "{}\\.alphacentauri.config.json",
         home_path.to_str().unwrap()
     );
+
+    #[cfg(not(target_os = "windows"))]
+    let config_file_path = format!("{}/.alphacentauri.config.json", home_path.to_str().unwrap());
+
     let mut notification_event = None;
     let user_config = match configuration::get_user_configuration(&config_file_path) {
         Ok(user_config) => {
