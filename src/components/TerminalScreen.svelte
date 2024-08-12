@@ -119,7 +119,7 @@
     // console.log(node.parentElement?.style.backgroundColor);
 
     terminal = new Terminal({
-      fontFamily: "Consolas",
+      fontFamily: "Consolas, Monospace",
       theme: {
         background: "#263238",
       }
