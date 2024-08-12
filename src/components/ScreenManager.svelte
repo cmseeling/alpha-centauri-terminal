@@ -14,8 +14,6 @@
 
   let tabs = [
     { id: '1', title: 'Tab 1' },
-    { id: '2', title: 'Tab 2 with a longer name' },
-    { id: '3', title: 'Tab 3' }
   ];
 
   const addNewTab = () => {
