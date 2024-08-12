@@ -5,6 +5,6 @@
   appWindow.setMinSize(new PhysicalSize(300, 200));
 </script>
 
-<div class="app-container">
+<div class="h-screen">
   <ScreenManager/>
 </div>

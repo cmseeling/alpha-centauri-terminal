@@ -55,9 +55,9 @@
     {#each tabs as triggerItem (triggerItem.id)}
       <div use:melt={$trigger(triggerItem.id)}
             class="trigger flex items-center justify-center border-r border-black rounded-t-lg
-            bg-slate-700 text-white opacity-75 ps-2 pe-2 h-6 data-[state=active]:opacity-100 cursor-pointer">
+            bg-gray-950 text-white opacity-75 ps-2 pe-2 h-6 data-[state=active]:opacity-100 cursor-pointer">
         {triggerItem.title}
-        <button class="bg-slate-700 text-white border-0 pt-0.5 pl-2" on:click={() => closeTab(triggerItem.id)}>
+        <button class="bg-gray-950 text-white border-0 pt-0.5 pl-2" on:click={() => closeTab(triggerItem.id)}>
           <CloseCircleOutline style="font-size:1em"/>
         </button>
       </div>
@@ -67,7 +67,7 @@
     </button>
   </div>
   {/if}
-  <div class="h-full bg-slate-700 overflow-y-hidden" bind:clientHeight={$height} bind:clientWidth={$width}>
+  <div class="h-full bg-gray-950 overflow-y-hidden" bind:clientHeight={$height} bind:clientWidth={$width}>
     {#each tabs as tabItem (tabItem.id)}
       <div use:melt={$content(tabItem.id)}>
         <TerminalScreen screenManagementDispatch={handleCommandDispatch}/>

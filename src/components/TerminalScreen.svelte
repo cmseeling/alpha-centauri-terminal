@@ -2,9 +2,13 @@
   import '@xterm/xterm/css/xterm.css';
   import { Terminal } from "@xterm/xterm";
   import { FitAddon } from "@xterm/addon-fit";
+  import { WebglAddon } from '@xterm/addon-webgl';
+  import { CanvasAddon } from '@xterm/addon-canvas';
   import { onMount } from 'svelte';
   import { createSession, type ShellSession } from "../pty/createSession";
   import { height, width, area } from '$lib/windowManagementStore';
+  import { isWebGL2Enabled } from '$lib/webGL2Store';
+  import { findKeyCommand, type CommandKeyMap } from '$lib/keymapUtils';
 
   export let screenManagementDispatch: (screenCommand: string) => void;
   export function updateSize() {
@@ -35,55 +39,11 @@
     resizing = true;
   }
 
-  const handleResize = (event: any) => {
-    console.log(event);
-    requestUpdate();
-  };
-
-  interface CommandKeyMap {
-    command: string;
-    keyCombo: string;
-  }
-
-  let mappedCommands: CommandKeyMap[] = [
-    {
-      command: "edit:copy",
-      keyCombo: "ctrl+shift+c"
-    },
-    {
-      command: "edit:past",
-      keyCombo: "ctrl+shift+v"
-    },
-    {
-      command: "window:new_tab",
-      keyCombo: "ctrl+shift+t"
-    },
-    {
-      command: "test",
-      keyCombo: "ctrl+ "
-    }
-  ];
-
-  const matchKeyboardEvent = (keyCombo: string, event:KeyboardEvent) => {
-    const tokens = keyCombo.split('+');
-    const key = tokens.splice((tokens.length - 1), 1)[0].toLowerCase();
-    const ctrl = tokens.includes('ctrl');
-    const alt = tokens.includes('alt');
-    const shift = tokens.includes('shift');
-    const meta = tokens.includes('meta');
-
-    return event.key.toLowerCase() === key
-      && event.ctrlKey === ctrl
-      && event.altKey === alt
-      && event.shiftKey === shift
-      && event.metaKey === meta;
-  }
-
   const handleKeyMapEvent = (command: CommandKeyMap) => {
-    console.log("map found for " + command.command);
+    console.log("map found for " + command.commandName);
 
-    if(command.command.includes("window")) {
-      screenManagementDispatch(command.command);
+    if(command.commandName.includes("window")) {
+      screenManagementDispatch(command.commandName);
     }
 
     return false;
@@ -94,7 +54,6 @@
 
     area.subscribe((value) => {
       requestUpdate();
-      // update();
     })
 
     return () => {
@@ -121,7 +80,7 @@
     terminal = new Terminal({
       fontFamily: "Consolas, Monospace",
       theme: {
-        background: "#263238",
+        background: "#020617",
       }
     });
     terminal.open(node);
@@ -130,6 +89,19 @@
 		fitAddon = new FitAddon();
 		terminal.loadAddon(fitAddon);
 		fitAddon.fit();
+
+    // WebGL2 or Canvas usage
+    if($isWebGL2Enabled) {
+      const webGL = new WebglAddon();
+      terminal.loadAddon(webGL);
+      webGL.onContextLoss(() => {
+        webGL.dispose();
+        terminal.loadAddon(new CanvasAddon());
+      })
+    }
+    else {
+      terminal.loadAddon(new CanvasAddon());
+    }
 
     createSession({cols: terminal.cols, rows: terminal.rows, env: {"foo": "bar"}}).then((session) => {
       shellSession = session;
@@ -152,15 +124,11 @@
         // session.write('\x03');
       });
 
-      // terminal.onKey((onKeyEvent, callback) => {
-      //   handleKeys(onKeyEvent)
-      // });
-
       const handleKeyboardEvent = (event: KeyboardEvent) => {
         if(event.type === "keydown") {
           console.log(event);
           // console.log(event.key === '\x7f');
-          const command = mappedCommands.find((keyMap) => matchKeyboardEvent(keyMap.keyCombo, event));
+          const command = findKeyCommand(event);
           if(command) {
             return handleKeyMapEvent(command);
           }
@@ -187,7 +155,7 @@
 </script>
 
 {#if loaded}
-<div class="terminal-screen" use:xtermJs style="--termHeight:{$height}px; --termWidth:{$width}px;" />
+<div class="terminal-screen px-3" use:xtermJs style="--termHeight:{$height}px; --termWidth:{$width}px;" />
 {/if}
 
 <style>
