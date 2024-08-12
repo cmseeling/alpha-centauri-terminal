@@ -8,6 +8,15 @@ pub struct UserConfig {
     pub keymaps: HashMap<String, String>,
 }
 
+impl fmt::Display for UserConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match serde_json::to_string_pretty(self) {
+            Ok(json) => write!(f, "{}", json),
+            Err(e) => write!(f, "{:?}", e)
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Shell {
     pub program: String,
@@ -36,11 +45,7 @@ pub fn generate_default_user_config() -> UserConfig {
             },
         },
         shell: Shell {
-            #[cfg(target_os = "windows")]
-            program: String::from("powershell.exe"),
-
-            #[cfg(not(target_os = "windows"))]
-            program: String::from("bash"),
+            program: String::default(),
 
             args: Vec::default(),
 

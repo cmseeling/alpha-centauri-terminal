@@ -7,7 +7,7 @@
   import { onMount } from 'svelte';
   import { createSession, type ShellSession } from "../pty/createSession";
   import { height, width, area } from '$lib/windowManagementStore';
-  import { isWebGL2Enabled } from '$lib/webGL2Store';
+  import { isWebGL2Enabled } from '$lib/configurationStore';
   import { findKeyCommand, type CommandKeyMap } from '$lib/keymapUtils';
 
   export let screenManagementDispatch: (screenCommand: string) => void;
@@ -103,7 +103,8 @@
       terminal.loadAddon(new CanvasAddon());
     }
 
-    createSession({cols: terminal.cols, rows: terminal.rows, env: {"foo": "bar"}}).then((session) => {
+    // can't use asnyc functions for Svelte use bindings, so using .then syntax
+    createSession({cols: terminal.cols, rows: terminal.rows, env: {}}).then((session) => {
       shellSession = session;
 
       session.onShellOutput(async (data: string) => {

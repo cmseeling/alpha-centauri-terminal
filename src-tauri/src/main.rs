@@ -2,13 +2,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::{
-    collections::BTreeMap,
-    collections::HashMap,
-    ffi::OsString,
-    sync::{
+    collections::{BTreeMap, HashMap}, ffi::OsString, sync::{
         atomic::{AtomicU32, Ordering},
         Arc,
-    },
+    }
 };
 
 use tauri::{
@@ -148,7 +145,14 @@ async fn create_session<R: Runtime>(
     #[cfg(debug_assertions)]
     println!("Launching shell from {}", &user_config.shell.program);
 
-    let mut cmd = CommandBuilder::new(&user_config.shell.program);
+    let mut cmd;
+    if user_config.shell.program.is_empty() {
+        cmd = CommandBuilder::new_default_prog();
+    }
+    else {
+        cmd = CommandBuilder::new(&user_config.shell.program);
+    }
+    
     cmd.args(args);
     if let Some(current_working_directory) = current_working_directory {
         cmd.cwd(OsString::from(current_working_directory));
@@ -412,6 +416,13 @@ async fn get_exit_status(
     }
 }
 
+#[tauri::command]
+async fn get_user_config(
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    Ok(state.user_configuration.read().await.to_string())
+}
+
 fn main() {
     #[cfg(debug_assertions)]
     println!("Attempting to retrieve user config file");
@@ -466,7 +477,8 @@ fn main() {
             resize,
             end_session,
             get_exit_status,
-            get_startup_notifications
+            get_startup_notifications,
+            get_user_config
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

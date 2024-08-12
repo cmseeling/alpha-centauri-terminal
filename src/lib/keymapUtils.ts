@@ -9,17 +9,41 @@ export const mappedCommands: CommandKeyMap[] = [
     keyCombo: "ctrl+shift+c"
   },
   {
-    commandName: "edit:past",
+    commandName: "edit:paste",
     keyCombo: "ctrl+shift+v"
+  },
+  {
+    commandName: "edit:cut",
+    keyCombo: "ctrl+shift+v"
+  },
+  {
+    commandName: "edit:undo",
+    keyCombo: "ctrl+shift+z"
+  },
+  {
+    commandName: "edit:redo",
+    keyCombo: "ctrl+shift+y"
   },
   {
     commandName: "window:new_tab",
     keyCombo: "ctrl+shift+t"
   },
   {
-    commandName: "test",
-    keyCombo: "ctrl+ "
-  }
+    commandName: "window:next_tab",
+    keyCombo: "ctrl+shift+ArrowLeft"
+  },
+  {
+    commandName: "window:prev_tab",
+    keyCombo: "ctrl+shift+ArrowRight"
+  },
+  {
+    commandName: "window:split_right",
+    keyCombo: "ctrl+shift+d"
+  },
+  {
+    commandName: "window:new_down",
+    keyCombo: "ctrl+shift+e"
+  },
 ];
 
 export const matchKeyboardEvent = (keyCombo: string, event:KeyboardEvent) => {
