@@ -1,16 +1,15 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt, fs};
 
-use super::keymap::Mappings;
-
 #[derive(Debug, Serialize, Deserialize, Default)]
-pub struct UserConfig {
+#[serde(rename_all = "camelCase")]
+pub struct UserConfigFS {
     // pub window: Window,
     pub shell: Shell,
     pub keymaps: HashMap<String, String>,
 }
 
-impl fmt::Display for UserConfig {
+impl fmt::Display for UserConfigFS {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match serde_json::to_string_pretty(self) {
             Ok(json) => write!(f, "{}", json),
@@ -19,20 +18,32 @@ impl fmt::Display for UserConfig {
     }
 }
 
-pub fn serialize_user_config_with_keymap(
-    config: UserConfig,
-) -> core::result::Result<String, serde_json::Error> {
-    // let window = serde_json::to_string(&config.window)?;
-    let shell = serde_json::to_string(&config.shell)?;
-    let mappings = Mappings::from(config.keymaps);
-    let keymaps = serde_json::to_string(&mappings.mapped_commands)?;
-    Ok(format!(
-        "{{\"shell\": {}, \"keymaps\": {}}}",
-        shell, keymaps
-    ))
+#[derive(Debug, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UserConfigJS {
+    pub shell: Shell,
+    pub keymaps: Vec<KeyCommandMap>
+}
+
+pub fn key_map_to_vector(h_map: HashMap<String, String>) -> Vec<KeyCommandMap> {
+    h_map
+        .into_iter()
+        .map(|(key, value)| KeyCommandMap {
+            command_name: key,
+            key_combo: value,
+        })
+        .collect()
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct KeyCommandMap {
+    pub command_name: String,
+    pub key_combo: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Shell {
     pub program: String,
     pub args: Vec<String>,
@@ -51,8 +62,8 @@ pub struct Shell {
 //     pub width: u16,
 // }
 
-pub fn generate_default_user_config() -> UserConfig {
-    UserConfig {
+pub fn generate_default_user_config() -> UserConfigFS {
+    UserConfigFS {
         // window: Window {
         //     size: Dimensions {
         //         height: 390,
@@ -61,11 +72,8 @@ pub fn generate_default_user_config() -> UserConfig {
         // },
         shell: Shell {
             program: String::default(),
-
             args: Vec::default(),
-
             env: HashMap::default(),
-
             bell: true,
         },
         keymaps: HashMap::from([
@@ -103,7 +111,7 @@ impl fmt::Display for UserConfigError {
 
 pub type Result<T> = std::result::Result<T, UserConfigError>;
 
-pub fn save_user_configuration(file_loc: &str, config: &UserConfig) -> Result<()> {
+pub fn save_user_configuration(file_loc: &str, config: &UserConfigFS) -> Result<()> {
     match serde_json::to_string_pretty(&config) {
         Ok(json) => match fs::write(file_loc, json) {
             Ok(_) => Ok(()),
@@ -113,7 +121,7 @@ pub fn save_user_configuration(file_loc: &str, config: &UserConfig) -> Result<()
     }
 }
 
-pub fn get_user_configuration(file_loc: &str) -> Result<UserConfig> {
+pub fn get_user_configuration(file_loc: &str) -> Result<UserConfigFS> {
     match fs::metadata(file_loc) {
         Ok(_) => {
             #[cfg(debug_assertions)]

@@ -23,7 +23,6 @@ use dir::home_dir;
 
 mod configuration {
     mod user_configuration;
-    mod keymap;
     pub use user_configuration::*;
 }
 
@@ -47,7 +46,7 @@ struct NotificationEvent {
 struct AppState {
     last_session_id: AtomicU32,
     sessions: RwLock<BTreeMap<PtyHandler, Arc<Session>>>,
-    user_configuration: RwLock<configuration::UserConfig>,
+    user_configuration: RwLock<configuration::UserConfigFS>,
     startup_notifications: RwLock<Vec<NotificationEvent>>,
 }
 
@@ -429,12 +428,12 @@ async fn get_user_config(
     app_handle: AppHandle,
 ) -> Result<String, String> {
     let state_config = state.user_configuration.read().await;
-    let config = configuration::UserConfig {
+    let config = configuration::UserConfigJS {
         // window: state_config.window.clone(),
         shell: state_config.shell.clone(),
-        keymaps: state_config.keymaps.clone(),
+        keymaps: configuration::key_map_to_vector(state_config.keymaps.clone()),
     };
-    match configuration::serialize_user_config_with_keymap(config) {
+    match serde_json::to_string(&config) {
         Ok(json) => Ok(json),
         Err(e) => {
             emit_error_notification(

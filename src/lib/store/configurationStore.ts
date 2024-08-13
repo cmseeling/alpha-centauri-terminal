@@ -1,25 +1,7 @@
 import { derived, writable, type Writable } from "svelte/store";
-import type { CommandKeyMap } from "./types";
+import type { UserConfiguration } from "$lib/types";
 
 export const isWebGL2Enabled = writable(false);
-
-// interface Window {
-
-// }
-
-interface Shell {
-  program: string;
-  args: string[];
-  env: {[key: string]: string};
-  bell: boolean;
-}
-
-export interface UserConfiguration {
-  // window: Window;
-  shell: Shell;
-  keymaps: CommandKeyMap[];
-  loaded: boolean;
-}
 
 export const userConfiguration: Writable<UserConfiguration> = writable({loaded: false} as UserConfiguration);
 

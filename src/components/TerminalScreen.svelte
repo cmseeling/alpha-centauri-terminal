@@ -5,10 +5,10 @@
   import { WebglAddon } from '@xterm/addon-webgl';
   import { CanvasAddon } from '@xterm/addon-canvas';
   import { onMount } from 'svelte';
-  import { createSession, type ShellSession } from "../pty/createSession";
-  import { height, width, area } from '$lib/windowManagementStore';
-  import { isWebGL2Enabled, userConfiguration } from '$lib/configurationStore';
-  import { findKeyCommand } from '$lib/keymapUtils';
+  import { createSession, type ShellSession } from "../lib/pty/createSession";
+  import { height, width, area } from '$lib/store/windowManagementStore';
+  import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
+  import { findKeyCommand, HexMap } from '$lib/keymapUtils';
   import type { CommandKeyMap } from '$lib/types';
 
   export let screenManagementDispatch: (screenCommand: string) => void;
@@ -40,16 +40,6 @@
     resizing = true;
   }
 
-  const handleKeyMapEvent = (command: CommandKeyMap) => {
-    console.log("map found for " + command.commandName);
-
-    if(command.commandName.includes("window")) {
-      screenManagementDispatch(command.commandName);
-    }
-
-    return false;
-  }
-
   onMount(() => {
     loaded = true;
 
@@ -64,6 +54,23 @@
       }
     }
   });
+
+  const handleKeyMapEvent = (command: CommandKeyMap) => {
+    console.log("map found for " + command.commandName);
+
+    if(command.commandName.includes("window")) {
+      screenManagementDispatch(command.commandName);
+      return false;
+    }
+    else if(command.commandName in HexMap) {
+      console.log('sending hex code');
+      shellSession.write(HexMap[command.commandName]);
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
 
   function toHex(str: string) {
     var result = '';
@@ -109,8 +116,6 @@
       shellSession = session;
 
       session.onShellOutput(async (data: string) => {
-        // console.log(data);
-        // console.log(toHex(data));
         await terminal.write(data);
       });
 
@@ -120,16 +125,12 @@
 
       terminal.onData((inputData) => {
         console.log(inputData);
-        // console.log(inputData === '\x7F');
-        // console.log(toHex(inputData))
         session.write(inputData);
-        // session.write('\x03');
       });
 
       const handleKeyboardEvent = (event: KeyboardEvent) => {
         if(event.type === "keydown") {
           console.log(event);
-          // console.log(event.key === '\x7f');
           const command = findKeyCommand(event);
           if(command) {
             return handleKeyMapEvent(command);
@@ -141,8 +142,6 @@
           }
           else {
             console.log("map not found");
-            // console.log(event.key);
-            // session.write(event.key);
             return true;
           }
         }

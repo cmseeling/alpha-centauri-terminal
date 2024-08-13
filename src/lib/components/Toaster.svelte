@@ -36,7 +36,7 @@
       out:fly={{ duration: 150, x: '100%' }}
       class="rounded-lg {data.bgColor} {data.textColor} shadow-md"
     >
-      <div class="relative flex w-[24rem] max-w-[calc(100vw-2rem)] items-center justify-between gap-4 p-5">
+      <div class="relative flex w-[30rem] max-w-[calc(100vw-2rem)] items-center justify-between gap-4 p-5">
         <div class="w-full">
           <h3 use:melt={$title(id)} class="flex items-center gap-2 font-semibold">
             {data.title}

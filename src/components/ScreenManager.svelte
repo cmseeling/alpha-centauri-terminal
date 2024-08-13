@@ -3,7 +3,7 @@
   import TerminalScreen from './TerminalScreen.svelte';
   import Add from 'virtual:icons/mdi/add';
   import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
-  import { height, width } from '$lib/windowManagementStore';
+  import { height, width } from '$lib/store/windowManagementStore';
 
   const {
     elements: { root, list, content, trigger },

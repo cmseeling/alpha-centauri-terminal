@@ -1,10 +1,12 @@
 import type { CommandKeyMap } from "./types";
+import { userConfiguration } from "./store/configurationStore";
+import { get } from "svelte/store";
 
-export const HexMap = {
+export const HexMap: {[key: string]: string} = {
   "edit:interrupt": '\x03'
 }
 
-export const mappedCommands: CommandKeyMap[] = [
+export const fallbackMap: CommandKeyMap[] = [
   {
     commandName: "edit:copy",
     keyCombo: "ctrl+shift+c"
@@ -15,7 +17,7 @@ export const mappedCommands: CommandKeyMap[] = [
   },
   {
     commandName: "edit:cut",
-    keyCombo: "ctrl+shift+v"
+    keyCombo: "ctrl+shift+x"
   },
   {
     commandName: "edit:undo",
@@ -26,16 +28,20 @@ export const mappedCommands: CommandKeyMap[] = [
     keyCombo: "ctrl+shift+y"
   },
   {
+    commandName: "edit:interrupt",
+    keyCombo: "ctrl+c"
+  },
+  {
     commandName: "window:new_tab",
     keyCombo: "ctrl+shift+t"
   },
   {
     commandName: "window:next_tab",
-    keyCombo: "ctrl+shift+ArrowLeft"
+    keyCombo: "ctrl+shift+ArrowRight"
   },
   {
     commandName: "window:prev_tab",
-    keyCombo: "ctrl+shift+ArrowRight"
+    keyCombo: "ctrl+shift+ArrowLeft"
   },
   {
     commandName: "window:split_right",
@@ -62,4 +68,13 @@ export const matchKeyboardEvent = (keyCombo: string, event:KeyboardEvent) => {
     && event.metaKey === meta;
 }
 
-export const findKeyCommand = (event: KeyboardEvent) => mappedCommands.find((keyMap) => matchKeyboardEvent(keyMap.keyCombo, event));
+export const findKeyCommand = (event: KeyboardEvent): CommandKeyMap|undefined => {
+  // prioritize user configuration mappings
+  const userKeyMaps = get(userConfiguration).keymaps;
+  let mapping = userKeyMaps.find((keyMap: CommandKeyMap) => matchKeyboardEvent(keyMap.keyCombo, event));
+  // use fallback map if command not found
+  if(mapping === undefined) {
+    mapping = fallbackMap.find((keyMap) => matchKeyboardEvent(keyMap.keyCombo, event));
+  }
+  return mapping;
+}

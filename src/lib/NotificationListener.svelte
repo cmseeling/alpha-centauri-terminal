@@ -2,7 +2,7 @@
   import { listen } from '@tauri-apps/api/event'
   import { invoke } from "@tauri-apps/api";
   import { onMount } from 'svelte';
-  import { addToast } from '$lib/Toaster.svelte'
+  import { addToast } from '$lib/components/Toaster.svelte'
 
   interface NotificationEvent {
     level: number;
