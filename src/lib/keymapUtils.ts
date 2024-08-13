@@ -1,7 +1,8 @@
-export interface CommandKeyMap {
-    commandName: string;
-    keyCombo: string;
-  }
+import type { CommandKeyMap } from "./types";
+
+export const HexMap = {
+  "edit:interrupt": '\x03'
+}
 
 export const mappedCommands: CommandKeyMap[] = [
   {

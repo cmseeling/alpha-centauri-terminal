@@ -1,5 +1,6 @@
 import { readable, derived, type Readable } from "svelte/store";
 import { invoke } from "@tauri-apps/api";
+import type { CommandKeyMap } from "./types";
 
 const TAURI_COMMAND_GET_USER_CONFIG = "get_user_config";
 
@@ -16,9 +17,9 @@ export const isWebGL2Enabled = readable(false, (set) => {
   return () => {};
 });
 
-interface Window {
+// interface Window {
 
-}
+// }
 
 interface Shell {
   program: string;
@@ -28,14 +29,23 @@ interface Shell {
 }
 
 export interface UserConfiguration {
-  window: Window;
+  // window: Window;
   shell: Shell;
-  keymaps: {[key: string]: string};
+  keymaps: CommandKeyMap[];
+  loaded: boolean;
 }
 
-export const userConfiguration: Readable<UserConfiguration> = readable({} as UserConfiguration, (set) => {
+export const userConfiguration: Readable<UserConfiguration> = readable({loaded: false} as UserConfiguration, (set) => {
   // can't use async functions to construct a Svelte readable store so using .then syntax
-  invoke<string>(TAURI_COMMAND_GET_USER_CONFIG).then((config) => set(JSON.parse(config))).catch((error) => console.log(error))
+  invoke<string>(TAURI_COMMAND_GET_USER_CONFIG)
+    .then((config) => {
+      console.log(config);
+      set({...JSON.parse(config), loaded: true})
+    })
+    .catch((error) => {
+      console.log(error)
+    });
+
   return () => {};
 })
 

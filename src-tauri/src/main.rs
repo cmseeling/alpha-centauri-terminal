@@ -2,10 +2,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::{
-    collections::{BTreeMap, HashMap}, ffi::OsString, sync::{
+    collections::{BTreeMap, HashMap},
+    ffi::OsString,
+    sync::{
         atomic::{AtomicU32, Ordering},
         Arc,
-    }
+    },
 };
 
 use tauri::{
@@ -21,6 +23,7 @@ use dir::home_dir;
 
 mod configuration {
     mod user_configuration;
+    mod keymap;
     pub use user_configuration::*;
 }
 
@@ -98,8 +101,8 @@ async fn create_session<R: Runtime>(
     let user_config = state.user_configuration.read().await;
 
     let args = args.unwrap_or(user_config.shell.args.clone());
-    let cols = cols.unwrap_or(user_config.window.size.width);
-    let rows = rows.unwrap_or(user_config.window.size.height);
+    let cols = cols.unwrap_or(200);
+    let rows = rows.unwrap_or(100);
     let env = env.unwrap_or(user_config.shell.env.clone());
 
     let pty_system = native_pty_system();
@@ -148,11 +151,10 @@ async fn create_session<R: Runtime>(
     let mut cmd;
     if user_config.shell.program.is_empty() {
         cmd = CommandBuilder::new_default_prog();
-    }
-    else {
+    } else {
         cmd = CommandBuilder::new(&user_config.shell.program);
     }
-    
+
     cmd.args(args);
     if let Some(current_working_directory) = current_working_directory {
         cmd.cwd(OsString::from(current_working_directory));
@@ -416,11 +418,38 @@ async fn get_exit_status(
     }
 }
 
+// #[tauri::command]
+// async fn get_user_config(state: tauri::State<'_, AppState>) -> Result<String, String> {
+//     Ok(state.user_configuration.read().await.to_string())
+// }
+
 #[tauri::command]
 async fn get_user_config(
     state: tauri::State<'_, AppState>,
+    app_handle: AppHandle,
 ) -> Result<String, String> {
-    Ok(state.user_configuration.read().await.to_string())
+    let state_config = state.user_configuration.read().await;
+    let config = configuration::UserConfig {
+        // window: state_config.window.clone(),
+        shell: state_config.shell.clone(),
+        keymaps: state_config.keymaps.clone(),
+    };
+    match configuration::serialize_user_config_with_keymap(config) {
+        Ok(json) => Ok(json),
+        Err(e) => {
+            emit_error_notification(
+                format!(
+                    "Error on configuration::serialize_user_config_with_keymap: {:?}",
+                    e
+                ),
+                3,
+                String::from("There was an error getting the user configuration file."),
+                format!("{:?}", e),
+                app_handle,
+            );
+            Err(e.to_string())
+        }
+    }
 }
 
 fn main() {

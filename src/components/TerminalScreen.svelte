@@ -7,8 +7,9 @@
   import { onMount } from 'svelte';
   import { createSession, type ShellSession } from "../pty/createSession";
   import { height, width, area } from '$lib/windowManagementStore';
-  import { isWebGL2Enabled } from '$lib/configurationStore';
-  import { findKeyCommand, type CommandKeyMap } from '$lib/keymapUtils';
+  import { isWebGL2Enabled, userConfiguration } from '$lib/configurationStore';
+  import { findKeyCommand } from '$lib/keymapUtils';
+  import type { CommandKeyMap } from '$lib/types';
 
   export let screenManagementDispatch: (screenCommand: string) => void;
   export function updateSize() {
