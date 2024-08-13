@@ -19,7 +19,7 @@
   let loaded = false;
   let resizing = false;
   let frame: number;
-  let fitAddon: FitAddon;
+  let fitAddon = new FitAddon();
   let terminal: Terminal;
   let shellSession: ShellSession;
 
@@ -82,17 +82,17 @@
       fontFamily: "Consolas, Monospace",
       theme: {
         background: "#020617",
-      }
+      },
     });
     terminal.open(node);
 
     // FitAddon Usage
-		fitAddon = new FitAddon();
 		terminal.loadAddon(fitAddon);
 		fitAddon.fit();
 
     // WebGL2 or Canvas usage
     if($isWebGL2Enabled) {
+      console.log("using webGL2");
       const webGL = new WebglAddon();
       terminal.loadAddon(webGL);
       webGL.onContextLoss(() => {
@@ -105,7 +105,7 @@
     }
 
     // can't use asnyc functions for Svelte use bindings, so using .then syntax
-    createSession({cols: terminal.cols, rows: terminal.rows, env: {}}).then((session) => {
+    createSession({cols: terminal.cols, rows: terminal.rows, env: $userConfiguration.shell.env}).then((session) => {
       shellSession = session;
 
       session.onShellOutput(async (data: string) => {
@@ -156,7 +156,7 @@
   }
 </script>
 
-{#if loaded}
+{#if loaded && $userConfiguration.loaded}
 <div class="terminal-screen px-3" use:xtermJs style="--termHeight:{$height}px; --termWidth:{$width}px;" />
 {/if}
 
@@ -164,5 +164,6 @@
   .terminal-screen {
     height: var(--termHeight, 100%);
     width: var(--termWidth, 100%);
+    overflow: hidden;
   }
 </style>

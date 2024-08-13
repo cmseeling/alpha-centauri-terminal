@@ -51,7 +51,7 @@
 
 <div use:melt={$root} class="flex flex-col h-full">
   {#if tabs.length > 1}
-  <div use:melt={$list} class="flex shrink-0 flex-row items-center">
+  <div use:melt={$list} class="flex shrink-0 flex-row items-center bg-slate-400">
     {#each tabs as triggerItem (triggerItem.id)}
       <div use:melt={$trigger(triggerItem.id)}
             class="trigger flex items-center justify-center border-r border-black rounded-t-lg
