@@ -22,7 +22,7 @@ impl fmt::Display for UserConfigFS {
 #[serde(rename_all = "camelCase")]
 pub struct UserConfigJS {
     pub shell: Shell,
-    pub keymaps: Vec<KeyCommandMap>
+    pub keymaps: Vec<KeyCommandMap>,
 }
 
 pub fn key_map_to_vector(h_map: HashMap<String, String>) -> Vec<KeyCommandMap> {
@@ -84,10 +84,22 @@ pub fn generate_default_user_config() -> UserConfigFS {
             (String::from("edit:redo"), String::from("ctrl+shift+y")),
             (String::from("edit:interrupt"), String::from("ctrl+c")),
             (String::from("window:new_tab"), String::from("ctrl+shift+t")),
-            (String::from("window:next_tab"), String::from("ctrl+shift+ArrowRight")),
-            (String::from("window:prev_tab"), String::from("ctrl+shift+ArrowLeft")),
-            (String::from("window:split_right"), String::from("ctrl+shift+d")),
-            (String::from("window:split_down"), String::from("ctrl+shift+e")),
+            (
+                String::from("window:next_tab"),
+                String::from("ctrl+shift+ArrowRight"),
+            ),
+            (
+                String::from("window:prev_tab"),
+                String::from("ctrl+shift+ArrowLeft"),
+            ),
+            (
+                String::from("window:split_right"),
+                String::from("ctrl+shift+d"),
+            ),
+            (
+                String::from("window:split_down"),
+                String::from("ctrl+shift+e"),
+            ),
         ]),
     }
 }
