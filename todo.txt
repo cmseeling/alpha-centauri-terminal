@@ -1,7 +1,7 @@
 1. Add Svelte tests
-3. Add Rust tests
-4. Implement copy/paste/other editor commands
-5. Implement window split and resizing
-6. Menu bar overhaul
-7. Figure out deep magic of current directory and current shell name
-8. Tab renaming
+2. Add Rust tests
+3. Implement copy/paste/other editor commands
+4. Implement window split and resizing
+5. Menu bar overhaul
+6. Figure out deep magic of current directory and current shell name
+7. Tab renaming
