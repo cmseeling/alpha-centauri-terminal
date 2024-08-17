@@ -1,5 +1,5 @@
-import type { CommandKeyMap } from './types';
-import { userConfiguration } from './store/configurationStore';
+import type { CommandKeyMap } from '$lib/types';
+import { userConfiguration } from '$lib/store/configurationStore';
 import { get } from 'svelte/store';
 
 export const HexMap: { [key: string]: string } = {

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { createTabs, melt } from '@melt-ui/svelte';
-	import TerminalScreen from './TerminalScreen.svelte';
 	import Add from 'virtual:icons/mdi/add';
 	import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 	import { height, width } from '$lib/store/windowManagementStore';
+
+	export let forceTabBar = false;
 
 	const {
 		elements: { root, list, content, trigger },
@@ -36,7 +37,7 @@
 		}
 	};
 
-	const handleCommandDispatch = (command: string) => {
+	export const handleCommandDispatch = (command: string) => {
 		console.log('received ' + command);
 		switch (command) {
 			case 'window:new_tab': {
@@ -48,7 +49,7 @@
 </script>
 
 <div use:melt={$root} class="flex h-full flex-col">
-	{#if tabs.length > 1}
+	{#if tabs.length > 1 || forceTabBar}
 		<div use:melt={$list} class="flex shrink-0 flex-row items-center bg-slate-400">
 			{#each tabs as triggerItem (triggerItem.id)}
 				<div
@@ -65,7 +66,11 @@
 					</button>
 				</div>
 			{/each}
-			<button class="h-5 w-6 border border-black pe-0.5 ps-0.5" on:click={addNewTab}>
+			<button
+				class="h-5 w-6 border border-black pe-0.5 ps-0.5"
+				data-testid="add-new-tab"
+				on:click={addNewTab}
+			>
 				<Add style="font-size:1em" />
 			</button>
 		</div>
@@ -77,7 +82,7 @@
 	>
 		{#each tabs as tabItem (tabItem.id)}
 			<div use:melt={$content(tabItem.id)}>
-				<TerminalScreen screenManagementDispatch={handleCommandDispatch} />
+				<slot />
 			</div>
 		{/each}
 	</div>

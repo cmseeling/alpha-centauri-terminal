@@ -87,6 +87,11 @@ export const createSession = async ({
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
 					onShellOutputCallback(shellData);
 				}
+
+				// if we're in a testing environment, don't continuously read
+				if (!window.__TAURI_METADATA__) {
+					break;
+				}
 			}
 		} catch (e: any) {
 			console.error('Reading Error: ', e);

@@ -5,10 +5,10 @@
 	import { WebglAddon } from '@xterm/addon-webgl';
 	import { CanvasAddon } from '@xterm/addon-canvas';
 	import { onMount } from 'svelte';
-	import { createSession, type ShellSession } from '../lib/pty/createSession';
+	import { createSession, type ShellSession } from '$lib/pty/createSession';
 	import { height, width, area } from '$lib/store/windowManagementStore';
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
-	import { findKeyCommand, HexMap } from '$lib/keymapUtils';
+	import { findKeyCommand, HexMap } from '$lib/utils/keymapUtils';
 	import type { CommandKeyMap } from '$lib/types';
 
 	export let screenManagementDispatch: (screenCommand: string) => void;

@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	import { invoke } from '@tauri-apps/api';
-	import { isWebGL2Enabled, userConfiguration } from './configurationStore';
+	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 
 	const gl = document.createElement('canvas').getContext('webgl2');
 	if (!gl) {
