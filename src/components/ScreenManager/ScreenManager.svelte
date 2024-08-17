@@ -61,6 +61,7 @@
 					<button
 						class="border-0 bg-gray-950 pl-2 pt-0.5 text-white"
 						on:click={() => closeTab(triggerItem.id)}
+						data-testid={`close-tab-${triggerItem.id}`}
 					>
 						<CloseCircleOutline style="font-size:1em" />
 					</button>
