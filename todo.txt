@@ -1,4 +1,4 @@
-1. Add Svelte tests
+Done  1. Add Svelte tests
 2. Add Rust tests
 3. Implement copy/paste/other editor commands
 4. Implement window split and resizing
