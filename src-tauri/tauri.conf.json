@@ -33,7 +33,9 @@
       {
         "title": "Alpha CenTauri Terminal",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "minWidth": 300,
+        "minHeight": 200
       }
     ],
     "security": {

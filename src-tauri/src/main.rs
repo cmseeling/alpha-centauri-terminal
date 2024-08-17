@@ -190,6 +190,7 @@ async fn write_to_session(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    #[cfg(debug_assertions)]
     println!("Received {}", &data);
     match state.sessions.read().await.get(&pid) {
         Some(session) => session
@@ -238,8 +239,6 @@ async fn read_from_session(
         .read()
         .await
         .get(&pid)
-        // using the ok_or call here because the match some/none wasn't refreshing terminal for some reason
-        // todo: look into why match some/none was failing
         .ok_or("Unavaliable pid")?
         .clone();
     let mut buf = [0u8; 1024];
@@ -417,11 +416,6 @@ async fn get_exit_status(
     }
 }
 
-// #[tauri::command]
-// async fn get_user_config(state: tauri::State<'_, AppState>) -> Result<String, String> {
-//     Ok(state.user_configuration.read().await.to_string())
-// }
-
 #[tauri::command]
 async fn get_user_config(
     state: tauri::State<'_, AppState>,
@@ -429,26 +423,24 @@ async fn get_user_config(
 ) -> Result<String, String> {
     let state_config = state.user_configuration.read().await;
     let config = configuration::UserConfigJS {
-        // window: state_config.window.clone(),
+        window: state_config.window.clone(),
         shell: state_config.shell.clone(),
         keymaps: configuration::key_map_to_vector(state_config.keymaps.clone()),
     };
-    match serde_json::to_string(&config) {
-        Ok(json) => Ok(json),
-        Err(e) => {
-            emit_error_notification(
-                format!(
-                    "Error on configuration::serialize_user_config_with_keymap: {:?}",
-                    e
-                ),
-                3,
-                String::from("There was an error getting the user configuration file."),
-                format!("{:?}", e),
-                app_handle,
-            );
-            Err(e.to_string())
-        }
-    }
+
+    serde_json::to_string(&config).map_err(|e| {
+        emit_error_notification(
+            format!(
+                "Error on configuration::serialize_user_config_with_keymap: {:?}",
+                e
+            ),
+            3,
+            String::from("There was an error getting the user configuration file."),
+            format!("{:?}", e),
+            app_handle,
+        );
+        e.to_string()
+    })
 }
 
 fn main() {
@@ -468,8 +460,6 @@ fn main() {
     let mut notification_event = None;
     let user_config = match configuration::get_user_configuration(&config_file_path) {
         Ok(user_config) => {
-            // let mut state_user_config = state.user_configuration.write().await;
-            // *state_user_config = user_config;
             #[cfg(debug_assertions)]
             println!("Successfully retrieved user config");
             user_config

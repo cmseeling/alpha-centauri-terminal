@@ -4,7 +4,7 @@ use std::{collections::HashMap, fmt, fs};
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UserConfigFS {
-    // pub window: Window,
+    pub window: Window,
     pub shell: Shell,
     pub keymaps: HashMap<String, String>,
 }
@@ -21,6 +21,7 @@ impl fmt::Display for UserConfigFS {
 #[derive(Debug, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UserConfigJS {
+    pub window: Window,
     pub shell: Shell,
     pub keymaps: Vec<KeyCommandMap>,
 }
@@ -38,8 +39,8 @@ pub fn key_map_to_vector(h_map: HashMap<String, String>) -> Vec<KeyCommandMap> {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KeyCommandMap {
-    pub command_name: String,
-    pub key_combo: String,
+    command_name: String,
+    key_combo: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -51,25 +52,17 @@ pub struct Shell {
     pub bell: bool,
 }
 
-// #[derive(Debug, Serialize, Deserialize, Default, Clone)]
-// pub struct Window {
-//     pub size: Dimensions,
-// }
-
-// #[derive(Debug, Serialize, Deserialize, Default, Clone)]
-// pub struct Dimensions {
-//     pub height: u16,
-//     pub width: u16,
-// }
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Window {
+    force_tab_bar: bool,
+}
 
 pub fn generate_default_user_config() -> UserConfigFS {
     UserConfigFS {
-        // window: Window {
-        //     size: Dimensions {
-        //         height: 390,
-        //         width: 540,
-        //     },
-        // },
+        window: Window {
+            force_tab_bar: false,
+        },
         shell: Shell {
             program: String::default(),
             args: Vec::default(),
@@ -124,13 +117,9 @@ impl fmt::Display for UserConfigError {
 pub type Result<T> = std::result::Result<T, UserConfigError>;
 
 pub fn save_user_configuration(file_loc: &str, config: &UserConfigFS) -> Result<()> {
-    match serde_json::to_string_pretty(&config) {
-        Ok(json) => match fs::write(file_loc, json) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(UserConfigError::Write(format!("{:?}", e))),
-        },
-        Err(e) => Err(UserConfigError::Write(format!("{:?}", e))),
-    }
+    let json = serde_json::to_string_pretty(&config)
+        .map_err(|e| UserConfigError::Write(format!("{:?}", e)))?;
+    fs::write(file_loc, json).map_err(|e| UserConfigError::Write(format!("{:?}", e)))
 }
 
 pub fn get_user_configuration(file_loc: &str) -> Result<UserConfigFS> {
@@ -139,13 +128,9 @@ pub fn get_user_configuration(file_loc: &str) -> Result<UserConfigFS> {
             #[cfg(debug_assertions)]
             println!("Configuration file at {} found.", file_loc);
 
-            match fs::read_to_string(file_loc) {
-                Ok(json) => match serde_json::from_str(&json) {
-                    Ok(config) => Ok(config),
-                    Err(e) => Err(UserConfigError::Parse(format!("{:?}", e))),
-                },
-                Err(e) => Err(UserConfigError::Read(format!("{:?}", e))),
-            }
+            let json = fs::read_to_string(file_loc)
+                .map_err(|e| UserConfigError::Read(format!("{:?}", e)))?;
+            serde_json::from_str(&json).map_err(|e| UserConfigError::Parse(format!("{:?}", e)))
         }
         Err(_) => {
             #[cfg(debug_assertions)]
@@ -155,10 +140,7 @@ pub fn get_user_configuration(file_loc: &str) -> Result<UserConfigFS> {
             );
 
             let default_config = generate_default_user_config();
-            match save_user_configuration(file_loc, &default_config) {
-                Ok(_) => Ok(default_config),
-                Err(e) => Err(e),
-            }
+            save_user_configuration(file_loc, &default_config).map(|_| default_config)
         }
     }
 }
