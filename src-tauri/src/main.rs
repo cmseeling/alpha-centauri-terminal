@@ -21,10 +21,7 @@ use serde::Serialize;
 
 use dir::home_dir;
 
-mod configuration {
-    mod user_configuration;
-    pub use user_configuration::*;
-}
+mod usr_conf;
 
 struct Session {
     pair: Mutex<PtyPair>,
@@ -46,7 +43,7 @@ struct NotificationEvent {
 struct AppState {
     last_session_id: AtomicU32,
     sessions: RwLock<BTreeMap<PtyHandler, Arc<Session>>>,
-    user_configuration: RwLock<configuration::UserConfigFS>,
+    user_configuration: RwLock<usr_conf::UserConfigFS>,
     startup_notifications: RwLock<Vec<NotificationEvent>>,
 }
 
@@ -422,10 +419,10 @@ async fn get_user_config(
     app_handle: AppHandle,
 ) -> Result<String, String> {
     let state_config = state.user_configuration.read().await;
-    let config = configuration::UserConfigJS {
+    let config = usr_conf::UserConfigJS {
         window: state_config.window.clone(),
         shell: state_config.shell.clone(),
-        keymaps: configuration::key_map_to_vector(state_config.keymaps.clone()),
+        keymaps: usr_conf::key_map_to_vector(state_config.keymaps.clone()),
     };
 
     serde_json::to_string(&config).map_err(|e| {
@@ -458,7 +455,7 @@ fn main() {
     let config_file_path = format!("{}/.alphacentauri.config.json", home_path.to_str().unwrap());
 
     let mut notification_event = None;
-    let user_config = match configuration::get_user_configuration(&config_file_path) {
+    let user_config = match usr_conf::get_user_configuration(&config_file_path) {
         Ok(user_config) => {
             #[cfg(debug_assertions)]
             println!("Successfully retrieved user config");
@@ -471,7 +468,7 @@ fn main() {
                 message: String::from("There was an error getting your configuration settings."),
                 details: format!("{}", e),
             });
-            configuration::generate_default_user_config()
+            usr_conf::generate_default_user_config()
         }
     };
 
