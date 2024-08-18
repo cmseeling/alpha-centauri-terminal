@@ -3,9 +3,9 @@ export interface CommandKeyMap {
 	keyCombo: string;
 }
 
-// interface Window {
-
-// }
+interface Window {
+	forceTabBar: boolean;
+}
 
 export interface Shell {
 	program: string;
@@ -15,7 +15,7 @@ export interface Shell {
 }
 
 export interface UserConfiguration {
-	// window: Window;
+	window: Window;
 	shell: Shell;
 	keymaps: CommandKeyMap[];
 	loaded: boolean;
