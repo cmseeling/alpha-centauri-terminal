@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt, fs};
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct UserConfigFS {
     pub window: Window,
@@ -36,14 +36,14 @@ pub fn key_map_to_vector(h_map: HashMap<String, String>) -> Vec<KeyCommandMap> {
         .collect()
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct KeyCommandMap {
     command_name: String,
     key_combo: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Shell {
     pub program: String,
@@ -52,7 +52,7 @@ pub struct Shell {
     pub bell: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Window {
     force_tab_bar: bool,
@@ -97,7 +97,7 @@ pub fn generate_default_user_config() -> UserConfigFS {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum UserConfigError {
     Read(String),
     Write(String),
@@ -142,5 +142,106 @@ pub fn get_user_configuration(file_loc: &str) -> Result<UserConfigFS> {
             let default_config = generate_default_user_config();
             save_user_configuration(file_loc, &default_config).map(|_| default_config)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{any::Any, io::Write};
+
+    use super::*;
+    use tempdir::TempDir;
+
+    #[test]
+    fn key_map_to_vector_returns_vector() {
+        let map: HashMap<String, String> = HashMap::from([
+            ("edit:interrupt".to_string(), "ctrl+c".to_string()),
+            ("window:new_tab".to_string(), "ctrl+shift+t".to_string()),
+        ]);
+
+        let expected_vector: Vec<KeyCommandMap> = Vec::from([
+            KeyCommandMap { command_name: "edit:interrupt".to_string(), key_combo: "ctrl+c".to_string() },
+            KeyCommandMap { command_name: "window:new_tab".to_string(), key_combo: "ctrl+shift+t".to_string() },
+        ]);
+
+        let actual_vector = key_map_to_vector(map);
+
+        assert_eq!(actual_vector, expected_vector);
+    }
+
+    #[test]
+    fn save_user_configuration_saves_to_disk() {
+        let dir = TempDir::new("usr_home").unwrap();
+        let file_path = dir.path().join("userConfig.json");
+        let file_path_str = file_path.to_str().unwrap();
+
+        let default_config = generate_default_user_config();
+        let _ = save_user_configuration(file_path_str, &default_config);
+        let file_metadata = match fs::metadata(file_path_str) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(())
+        };
+        assert_eq!(file_metadata, Ok(()));
+
+        let _ = dir.close();
+    }
+
+    #[test]
+    fn get_user_configuration_loads_config_from_file() {
+        let dir = TempDir::new("usr_home").unwrap();
+        let file_path = dir.path().join("userConfig.json");
+        let file_path_str = file_path.to_str().unwrap();
+
+        let default_config = generate_default_user_config();
+        let _ = save_user_configuration(file_path_str, &default_config);
+        
+        let actual = get_user_configuration(file_path_str).unwrap();
+        assert_eq!(actual, default_config);
+
+        let _ = dir.close();
+    }
+
+    #[test]
+    fn get_user_configuration_saves_default_configuration() {
+        let dir = TempDir::new("usr_home").unwrap();
+        let file_path = dir.path().join("userConfig.json");
+        let file_path_str = file_path.to_str().unwrap();
+
+        let mut file_metadata = match fs::metadata(file_path_str) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(())
+        };
+        assert_eq!(file_metadata, Err(()));
+
+        let _actual = get_user_configuration(file_path_str).unwrap();
+
+        file_metadata = match fs::metadata(file_path_str) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(())
+        };
+        assert_eq!(file_metadata, Ok(()));
+        
+        let _ = dir.close();
+    }
+
+    #[test]
+    fn get_user_configuration_returns_parse_error() {
+        let dir = TempDir::new("usr_home").unwrap();
+        let file_path = dir.path().join("userConfig.json");
+        let file_path_str = file_path.to_str().unwrap();
+        let expected_type = UserConfigError::Parse("test".to_string()).type_id();
+
+        let mut f = std::fs::File::create(file_path_str).unwrap();
+        f.write_all(b"{\"shell\":\"program\":\"bash\",\"args\":[],\"env\":{},\"bell\":true},\"keymaps\":[]}").unwrap();
+        f.sync_all().unwrap();
+
+        let actual = match get_user_configuration(file_path_str) {
+            Ok(json) => json.type_id(),
+            Err(e) => e.type_id()
+        };
+
+        assert_eq!(actual, expected_type);
+        
+        let _ = dir.close();
     }
 }
