@@ -1,7 +1,9 @@
 Done  1. Add Svelte tests
-2. Add Rust tests
+Done 2. Add Rust tests
 3. Implement copy/paste/other editor commands
 4. Implement window split and resizing
 5. Menu bar overhaul
 6. Figure out deep magic of current directory and current shell name
 7. Tab renaming
+8. Update README
+9. playwright test execution on linux - refer to https://trac.webkit.org/wiki/RemoteInspectorGTKandWPE
