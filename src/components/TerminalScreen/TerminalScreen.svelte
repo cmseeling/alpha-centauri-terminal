@@ -89,6 +89,7 @@
 			}
 		});
 		terminal.open(node);
+		terminal.focus();
 
 		// FitAddon Usage
 		terminal.loadAddon(fitAddon);
