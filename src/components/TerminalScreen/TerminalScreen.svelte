@@ -50,6 +50,7 @@
 		return () => {
 			cancelAnimationFrame(frame);
 			if (shellSession) {
+				shellSession.dispose();
 			}
 		};
 	});

@@ -10,5 +10,5 @@ Done 2. Add Rust tests
 10. path to config file as argument
 11. create test json configuration
 12. script to launch dev app, wait for compile + start, and start e2e test
-13. make sure shell instance actually dies on window close
+Done 13. make sure shell instance actually dies on window close
 14. fix window location on startup
