@@ -122,7 +122,7 @@ pub fn save_user_configuration(file_loc: &str, config: &UserConfigFS) -> Result<
     fs::write(file_loc, json).map_err(|e| UserConfigError::Write(format!("{:?}", e)))
 }
 
-pub fn get_user_configuration(file_loc: &str) -> Result<UserConfigFS> {
+pub fn get_user_configuration(file_loc: &str, save_default_config: bool) -> Result<UserConfigFS> {
     match fs::metadata(file_loc) {
         Ok(_) => {
             #[cfg(debug_assertions)]
@@ -140,7 +140,11 @@ pub fn get_user_configuration(file_loc: &str) -> Result<UserConfigFS> {
             );
 
             let default_config = generate_default_user_config();
-            save_user_configuration(file_loc, &default_config).map(|_| default_config)
+            if save_default_config {
+                save_user_configuration(file_loc, &default_config).map(|_| default_config)
+            } else {
+                Ok(default_config)
+            }
         }
     }
 }
@@ -160,8 +164,14 @@ mod tests {
         ]);
 
         let expected_vector: Vec<KeyCommandMap> = Vec::from([
-            KeyCommandMap { command_name: "edit:interrupt".to_string(), key_combo: "ctrl+c".to_string() },
-            KeyCommandMap { command_name: "window:new_tab".to_string(), key_combo: "ctrl+shift+t".to_string() },
+            KeyCommandMap {
+                command_name: "edit:interrupt".to_string(),
+                key_combo: "ctrl+c".to_string(),
+            },
+            KeyCommandMap {
+                command_name: "window:new_tab".to_string(),
+                key_combo: "ctrl+shift+t".to_string(),
+            },
         ]);
 
         let actual_vector = key_map_to_vector(map);
@@ -179,7 +189,7 @@ mod tests {
         let _ = save_user_configuration(file_path_str, &default_config);
         let file_metadata = match fs::metadata(file_path_str) {
             Ok(_) => Ok(()),
-            Err(_) => Err(())
+            Err(_) => Err(()),
         };
         assert_eq!(file_metadata, Ok(()));
 
@@ -194,8 +204,8 @@ mod tests {
 
         let default_config = generate_default_user_config();
         let _ = save_user_configuration(file_path_str, &default_config);
-        
-        let actual = get_user_configuration(file_path_str).unwrap();
+
+        let actual = get_user_configuration(file_path_str, false).unwrap();
         assert_eq!(actual, default_config);
 
         let _ = dir.close();
@@ -209,18 +219,18 @@ mod tests {
 
         let mut file_metadata = match fs::metadata(file_path_str) {
             Ok(_) => Ok(()),
-            Err(_) => Err(())
+            Err(_) => Err(()),
         };
         assert_eq!(file_metadata, Err(()));
 
-        let _actual = get_user_configuration(file_path_str).unwrap();
+        let _actual = get_user_configuration(file_path_str, true).unwrap();
 
         file_metadata = match fs::metadata(file_path_str) {
             Ok(_) => Ok(()),
-            Err(_) => Err(())
+            Err(_) => Err(()),
         };
         assert_eq!(file_metadata, Ok(()));
-        
+
         let _ = dir.close();
     }
 
@@ -235,13 +245,13 @@ mod tests {
         f.write_all(b"{\"shell\":\"program\":\"bash\",\"args\":[],\"env\":{},\"bell\":true},\"keymaps\":[]}").unwrap();
         f.sync_all().unwrap();
 
-        let actual = match get_user_configuration(file_path_str) {
+        let actual = match get_user_configuration(file_path_str, false) {
             Ok(json) => json.type_id(),
-            Err(e) => e.type_id()
+            Err(e) => e.type_id(),
         };
 
         assert_eq!(actual, expected_type);
-        
+
         let _ = dir.close();
     }
 }

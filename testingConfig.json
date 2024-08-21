@@ -1,0 +1,24 @@
+{
+  "window": {
+    "forceTabBar": true
+  },
+  "shell": {
+    "program": "bash",
+    "args": [],
+    "env": {},
+    "bell": true
+  },
+  "keymaps": {
+    "window:split_right": "ctrl+shift+d",
+    "window:next_tab": "ctrl+shift+ArrowRight",
+    "edit:copy": "ctrl+shift+c",
+    "edit:cut": "ctrl+shift+x",
+    "edit:undo": "ctrl+shift+z",
+    "edit:paste": "ctrl+shift+v",
+    "edit:redo": "ctrl+shift+y",
+    "window:prev_tab": "ctrl+shift+ArrowLeft",
+    "window:new_tab": "ctrl+shift+t",
+    "window:split_down": "ctrl+shift+e",
+    "edit:interrupt": "ctrl+c"
+  }
+}

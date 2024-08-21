@@ -440,37 +440,62 @@ async fn get_user_config(
     })
 }
 
-fn main() {
-    #[cfg(debug_assertions)]
-    println!("Attempting to retrieve user config file");
-    let home_path = home_dir().unwrap();
+fn setup<'a>(app: &'a mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    let mut arg_path: Option<String> = None;
+    let mut save_default_config = true;
+    match app.get_cli_matches() {
+        Ok(matches) => {
+            #[cfg(debug_assertions)]
+            println!("Found input args: {:?}", matches);
+            if matches.args.contains_key("configFile") {
+                matches.args.get("configFile").map(|arg| match &arg.value {
+                    serde_json::Value::String(config_file) => {
+                        arg_path = Some(config_file.to_string());
+                        save_default_config = false;
+                    }
+                    _ => {}
+                });
+            }
+        }
+        Err(_) => {}
+    }
 
-    #[cfg(target_os = "windows")]
-    let config_file_path = format!(
-        "{}\\.alphacentauri.config.json",
-        home_path.to_str().unwrap()
-    );
+    let config_file_path = arg_path.or_else(|| {
+        #[cfg(debug_assertions)]
+        println!("Attempting to retrieve user config file");
+        let home_path = home_dir().unwrap();
 
-    #[cfg(not(target_os = "windows"))]
-    let config_file_path = format!("{}/.alphacentauri.config.json", home_path.to_str().unwrap());
+        #[cfg(target_os = "windows")]
+        let default_path = Some(format!(
+            "{}\\.alphacentauri.config.json",
+            home_path.to_str().unwrap()
+        ));
+
+        #[cfg(not(target_os = "windows"))]
+        let default_path = Some(format!(
+            "{}/.alphacentauri.config.json",
+            home_path.to_str().unwrap()
+        ));
+
+        default_path
+    });
 
     let mut notification_event = None;
-    let user_config = match usr_conf::get_user_configuration(&config_file_path) {
-        Ok(user_config) => {
-            #[cfg(debug_assertions)]
-            println!("Successfully retrieved user config");
-            user_config
-        }
-        Err(e) => {
-            println!("There was a problem getting the user config: {:?}", e);
-            notification_event = Some(NotificationEvent {
-                level: 2,
-                message: String::from("There was an error getting your configuration settings."),
-                details: format!("{}", e),
-            });
-            usr_conf::generate_default_user_config()
-        }
-    };
+    let user_config =
+        match usr_conf::get_user_configuration(&config_file_path.unwrap(), save_default_config) {
+            Ok(user_config) => user_config,
+            Err(e) => {
+                println!("There was a problem getting the user config: {:?}", e);
+                notification_event = Some(NotificationEvent {
+                    level: 2,
+                    message: String::from(
+                        "There was an error getting your configuration settings.",
+                    ),
+                    details: format!("{}", e),
+                });
+                usr_conf::generate_default_user_config()
+            }
+        };
 
     let state = AppState {
         last_session_id: AtomicU32::default(),
@@ -482,9 +507,15 @@ fn main() {
         },
     };
 
+    app.manage(state);
+
+    Ok(())
+}
+
+fn main() {
     tauri::Builder::default()
+        .setup(setup)
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .manage(state)
         .invoke_handler(tauri::generate_handler![
             create_session,
             write_to_session,

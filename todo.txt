@@ -7,8 +7,8 @@ Done 2. Add Rust tests
 7. Tab renaming
 8. Update README
 9. playwright test execution on linux - refer to https://trac.webkit.org/wiki/RemoteInspectorGTKandWPE
-10. path to config file as argument
-11. create test json configuration
+Done 10. path to config file as argument
+Done 11. create test json configuration
 12. script to launch dev app, wait for compile + start, and start e2e test
 Done 13. make sure shell instance actually dies on window close
 14. fix window location on startup
