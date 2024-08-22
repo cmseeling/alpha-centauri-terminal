@@ -12,7 +12,7 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"tauri": "tauri",
-		"tauri:testing": "tauri dev -- -- ../testingConfig.json",
+		"tauri:testing": "tauri dev -- -- ../tests/testingConfig.json",
 		"test:svelte": "vitest",
 		"test:svelte:ui": "vitest --ui",
 		"test:e2e": "playwright test"
