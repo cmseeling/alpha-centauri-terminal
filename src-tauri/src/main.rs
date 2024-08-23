@@ -39,6 +39,13 @@ struct NotificationEvent {
     details: String,
 }
 
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ShellStatus {
+    has_exited: bool,
+    exit_code: Option<u32>,
+}
+
 #[derive(Default)]
 struct AppState {
     last_session_id: AtomicU32,
@@ -331,6 +338,7 @@ async fn end_session(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    #[cfg(debug_assertions)]
     println!("ending session for pid: {:?}", pid);
     match state.sessions.read().await.get(&pid) {
         Some(session) => session.child.lock().await.kill().map_err(|e| {
@@ -365,6 +373,8 @@ async fn get_exit_status(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<u32, String> {
+    #[cfg(debug_assertions)]
+    println!("getting exit status for pid: {:?}", pid);
     match state.sessions.read().await.get(&pid) {
         Some(session) => {
             let exit_status_result = session.clone().child.lock().await.wait().map_err(|e| {
@@ -410,6 +420,81 @@ async fn get_exit_status(
             );
             Err(String::from("Unavailable pid"))
         }
+    }
+}
+
+#[tauri::command]
+async fn check_exit_status(
+    pid: PtyHandler,
+    state: tauri::State<'_, AppState>,
+    app_handle: AppHandle,
+) -> Result<String, String> {
+    if let Some(session) = state.sessions.read().await.get(&pid) {
+        let exit_status_result = session.child.lock().await.try_wait().map_err(|e| {
+            emit_error_notification(
+                format!(
+                    "Error on session.clone().child.lock().await.wait(): {:?}",
+                    e
+                ),
+                3,
+                String::from("There was an error getting the shell session exit code."),
+                format!("{:?}", e),
+                app_handle.clone(),
+            );
+            e.to_string()
+        });
+        match exit_status_result {
+            Ok(exit_status) => {
+                let status_result: ShellStatus = match exit_status {
+                    Some(exit_status) => {
+                        ShellStatus { has_exited: true, exit_code: Some(exit_status.exit_code()) }
+                    },
+                    None => {
+                        ShellStatus { has_exited: false, exit_code: None }
+                    }
+                };
+                let json = serde_json::to_string(&status_result).map_err(|e| {
+                    emit_error_notification(
+                        format!(
+                            "Error on configuration::serialize_user_config_with_keymap: {:?}",
+                            e
+                        ),
+                        3,
+                        String::from("There was an error getting the user configuration file."),
+                        format!("{:?}", e),
+                        app_handle,
+                    );
+                    e.to_string()
+                })?;
+                Ok(json)
+            },
+            Err(e) => {
+                emit_error_notification(
+                    format!(
+                        "Error on session.clone().child.lock().await.wait(): {:?}",
+                        e
+                    ),
+                    3,
+                    String::from("There was an error getting the shell session exit code."),
+                    format!("{:?}", e),
+                    app_handle,
+                );
+                Err(e)
+            }
+        }
+    }
+    else {
+        emit_error_notification(
+            format!(
+                "Error on state.sessions.read().await.get - session with pid={:?} not found",
+                pid
+            ),
+            3,
+            String::from("There was an error getting the shell session exit code."),
+            format!("Session not found for pid {:?}", pid),
+            app_handle,
+        );
+        Err(String::from("Unavailable pid"))
     }
 }
 
@@ -523,6 +608,7 @@ fn main() {
             resize,
             end_session,
             get_exit_status,
+            check_exit_status,
             get_startup_notifications,
             get_user_config
         ])

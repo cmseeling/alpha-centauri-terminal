@@ -10,8 +10,10 @@
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 	import { findKeyCommand, HexMap } from '$lib/utils/keymapUtils';
 	import type { CommandKeyMap } from '$lib/types';
+	import { shell } from '@tauri-apps/api';
 
 	export let screenManagementDispatch: (screenCommand: string) => void;
+	export let onShellExit: (exitCode: number) => void;
 	export function updateSize() {
 		update();
 	}
@@ -122,7 +124,7 @@
 			});
 
 			session.onShellExit((exitCode: number) => {
-				console.log(`Session process exited with code ${exitCode}`);
+				onShellExit(exitCode);
 			});
 
 			terminal.onData((inputData) => {

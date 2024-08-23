@@ -23,6 +23,6 @@
 
 <div class="h-screen">
 	<ScreenManager bind:this={screenManager} forceTabBar={forceTabBar}>
-		<TerminalScreen screenManagementDispatch={handleDispatch} />
+		<TerminalScreen screenManagementDispatch={handleDispatch} onShellExit={(exitCode) => {console.log(`Session process exited with code ${exitCode}`);}} />
 	</ScreenManager>
 </div>
