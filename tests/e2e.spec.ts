@@ -4,7 +4,7 @@ import getLogger from './utils/logger';
 const logger = getLogger('e2e.log', 'e2e.error.log');
 
 test('terminal loads', async () => {
-	logger.info('test starting')
+	logger.info('test starting');
 	const browser = await chromium.connectOverCDP('http://localhost:9222');
 
 	console.log(browser.isConnected() && 'Connected to Chrome.');
@@ -25,7 +25,7 @@ test('terminal loads', async () => {
 	await newTabButton.click();
 	let newTab = await page.getByText('New Tab');
 	await expect(newTab).toHaveCount(1);
-	let firstTabId = await newTab.getAttribute('data-value');
+	const firstTabId = await newTab.getAttribute('data-value');
 	await page.screenshot({ path: 'test-results/__snapshots/2_new_tab_by_button.png' });
 
 	// new tab key combo works

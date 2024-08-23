@@ -21,7 +21,7 @@
 	onMount(async () => {
 		try {
 			const configJson = await invoke<string>(TAURI_COMMAND_GET_USER_CONFIG);
-			console.log(configJson);
+			// console.log(configJson);
 			userConfiguration.set({ ...JSON.parse(configJson), loaded: true });
 		} catch (e) {
 			console.log(e);

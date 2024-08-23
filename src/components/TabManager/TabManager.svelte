@@ -1,70 +1,24 @@
 <script lang="ts">
-  import { createTabs, melt } from '@melt-ui/svelte';
+	import { createEventDispatcher } from 'svelte';
+	import { melt } from '@melt-ui/svelte';
+	import type { Tab } from '$lib/types';
+	import { content, list, root, trigger } from '$lib/store/tabs';
+	import { height, width } from '$lib/store/windowManagementStore';
 	import Add from 'virtual:icons/mdi/add';
 	import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
-	import { height, width } from '$lib/store/windowManagementStore';
-	import type { Tab } from '$lib/types';
-	import { createEventDispatcher } from 'svelte';
 
 	export let forceTabBar = false;
-  export function setTabs(newTabs: Tab[], activeTabId: string) {
-    tabs = newTabs;
-    $activeTab = activeTabId;
-  };
-  export function getActiveTabId() {
-    return $activeTab;
-  };
+	export let tabs: Tab[] = [{ id: '1', title: 'Tab 1' }];
 
-  let tabs: Tab[] = [{ id: '1', title: 'Tab 1' }];
+	const dispatch = createEventDispatcher();
 
-	const {
-		elements: { root, list, content, trigger },
-		states: { value: activeTab }
-	} = createTabs({
-		defaultValue: '1'
-	});
+	const newTabClicked = () => {
+		dispatch('newtab');
+	};
 
-  const dispatch = createEventDispatcher();
-
-  const newTabClicked = () => {
-    dispatch('newtab');
-  }
-
-  const closeTabClicked = (tabId: string) => {
-    dispatch('closetab', { tabId })
-  }
-
-	// const addNewTab = () => {
-	// 	console.log('adding new tab');
-	// 	tabs = [
-	// 		...tabs,
-	// 		{
-	// 			id: '' + new Date().getTime(),
-	// 			title: 'New Tab'
-	// 		}
-	// 	];
-	// 	$activeTab = tabs[tabs.length - 1].id;
-	// };
-
-	// const closeTab = (tabId: string) => {
-	// 	console.log('closing tab ' + tabId);
-	// 	tabs = tabs.filter((tab) => {
-	// 		return tab.id !== tabId;
-	// 	});
-	// 	if ($activeTab === tabId) {
-	// 		$activeTab = tabs[0].id;
-	// 	}
-	// };
-
-	// export const handleCommandDispatch = (command: string) => {
-	// 	console.log('received ' + command);
-	// 	switch (command) {
-	// 		case 'window:new_tab': {
-	// 			addNewTab();
-	// 			break;
-	// 		}
-	// 	}
-	// };
+	const closeTabClicked = (tabId: string) => {
+		dispatch('closetab', { tabId });
+	};
 </script>
 
 <div use:melt={$root} class="flex h-full flex-col">

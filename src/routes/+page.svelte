@@ -1,13 +1,13 @@
 <script lang="ts">
-	import ScreenManager from '$components/ScreenManager/ScreenManager.svelte';
-	import { userConfiguration } from '$lib/store/configurationStore';
 	import { onMount } from 'svelte';
+	import { userConfiguration } from '$lib/store/configurationStore';
+	import ScreenManager from '$components/ScreenManager/ScreenManager.svelte';
 
 	let forceTabBar: boolean = false;
 
 	onMount(() => {
 		userConfiguration.subscribe((value) => {
-			if(value.loaded) {
+			if (value.loaded) {
 				forceTabBar = value.window.forceTabBar;
 			}
 		});

@@ -29,7 +29,7 @@ export interface CreateSessionInputs {
 
 interface SessionTerminationStatus {
 	hasExited: boolean;
-	exitCode: number|null;
+	exitCode: number | null;
 }
 
 export const createSession = async ({
@@ -40,9 +40,9 @@ export const createSession = async ({
 	env
 }: CreateSessionInputs) => {
 	let pid: number | null = null;
-	let onShellOutputCallback = (data: string) => {};
+	let onShellOutputCallback: (data: string) => void = () => {};
 	let onShellOutputHasSubscriber = false;
-	let onShellExitCallback = (exitCode: number) => {};
+	let onShellExitCallback: (exitCode: number) => void = () => {};
 	let onShellExitHasSubscriber = false;
 	let shellExited = false;
 
@@ -93,7 +93,7 @@ export const createSession = async ({
 		// listen to session output
 		try {
 			while (sessionActive && pid !== null) {
-				console.log('reading');
+				// console.log('reading');
 				if (onShellOutputHasSubscriber) {
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
 					onShellOutputCallback(shellData);
@@ -104,28 +104,28 @@ export const createSession = async ({
 					break;
 				}
 			}
-		} catch (e: any) {
+		} catch (e: unknown) {
 			console.error('Reading Error: ', e);
 		}
-	}
+	};
 
 	const _listenForExit = async () => {
-		console.log('listening');
-		while(!shellExited) {
+		// console.log('listening');
+		while (!shellExited) {
 			// listen for session termination
 			if (onShellExitHasSubscriber) {
 				const json = await invoke<string>(TAURI_COMMAND_CHECK_EXIT_STATUS, { pid });
 				const terminationStatus: SessionTerminationStatus = JSON.parse(json);
-				if(terminationStatus.hasExited) {
+				if (terminationStatus.hasExited) {
 					shellExited = true;
 					onShellExitCallback(terminationStatus.exitCode as number);
 				}
 			}
 		}
-	}
+	};
 
 	const dispose = () => {
-		console.log('stopping shell session');
+		// console.log('stopping shell session');
 		kill();
 		sessionActive = false;
 		pid = null;

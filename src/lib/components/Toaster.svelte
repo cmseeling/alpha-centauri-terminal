@@ -34,7 +34,7 @@
 				collapseDetails: true
 			}
 		});
-	}
+	};
 
 	export const addWarningToast = (message: string, details: string) => {
 		addToast({
@@ -46,7 +46,7 @@
 				collapseDetails: true
 			}
 		});
-	}
+	};
 
 	export const addErrorToast = (message: string, details: string) => {
 		addToast({
@@ -58,7 +58,7 @@
 				collapseDetails: true
 			}
 		});
-	}
+	};
 </script>
 
 <script lang="ts">

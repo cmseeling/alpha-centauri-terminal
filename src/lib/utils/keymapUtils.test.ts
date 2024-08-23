@@ -1,4 +1,4 @@
-import { beforeAll, expect, test, vi } from 'vitest';
+import { expect, test, vi } from 'vitest';
 
 import { userConfiguration } from '$lib/store/configurationStore';
 import * as store from 'svelte/store';
@@ -30,8 +30,8 @@ test('matchKeyboardEvent finds events', async () => {
 });
 
 test('matchKeyboardEvent returns false if event does not match', async () => {
-	let keyCombo = 'ctrl+c';
-	let event = {
+	const keyCombo = 'ctrl+c';
+	const event = {
 		key: 'a',
 		ctrlKey: false,
 		altKey: true,
@@ -43,8 +43,8 @@ test('matchKeyboardEvent returns false if event does not match', async () => {
 });
 
 test('matchKeyboardEvent does not match for bad keyCombo', async () => {
-	let keyCombo = 'ctrlshift+c';
-	let event = {
+	const keyCombo = 'ctrlshift+c';
+	const event = {
 		key: 'c',
 		ctrlKey: true,
 		altKey: false,
@@ -74,7 +74,7 @@ test('findKeyCommand gets command from userConfiguration', async () => {
 	userConfiguration.set(userConfig);
 	const getSpy = vi.spyOn(store, 'get');
 
-	let event = {
+	const event = {
 		key: 'c',
 		ctrlKey: true,
 		altKey: false,
@@ -110,7 +110,7 @@ test('findKeyCommand gets command from fallback map', () => {
 
 	userConfiguration.set(userConfig);
 
-	let event = {
+	const event = {
 		key: 'c',
 		ctrlKey: true,
 		altKey: false,

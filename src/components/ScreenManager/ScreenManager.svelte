@@ -1,12 +1,12 @@
 <script lang="ts">
+	import { appWindow } from '@tauri-apps/api/window';
+	import { activeTab } from '$lib/store/tabs';
+	import { addWarningToast } from '$lib/components/Toaster.svelte';
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import TerminalScreen from '$components/TerminalScreen/TerminalScreen.svelte';
-	import { addWarningToast } from '$lib/components/Toaster.svelte';
-	import { appWindow } from '@tauri-apps/api/window';
 
 	export let forceTabBar = false;
 
-	let tabManager: TabManager;
 	let tabs = [{ id: '1', title: 'Tab 1' }];
 
 	const addNewTab = () => {
@@ -18,12 +18,11 @@
 				title: 'New Tab'
 			}
 		];
-		const activeTab = tabs[tabs.length - 1].id;
-		tabManager.setTabs(tabs, activeTab);
+		$activeTab = tabs[tabs.length - 1].id;
 	};
 
 	const closeTab = (event: CustomEvent) => {
-		const tabId = event.detail.tabId
+		const tabId = event.detail.tabId;
 		closeTabById(tabId);
 	};
 
@@ -32,27 +31,24 @@
 		tabs = tabs.filter((tab) => {
 			return tab.id !== tabId;
 		});
-		if(tabs.length > 0) {
-			let activeTab = tabManager.getActiveTabId();
-			if (activeTab === tabId) {
-				activeTab = tabs[0].id;
+		if (tabs.length > 0) {
+			if ($activeTab === tabId) {
+				$activeTab = tabs[0].id;
 			}
-			tabManager.setTabs(tabs, activeTab);
-		}
-		else {
+		} else {
 			appWindow.close();
 		}
-	}
+	};
 
-	const handleSessionExit = (exitCode: number, tabId: string|undefined) => {
+	const handleSessionExit = (exitCode: number, tabId: string | undefined) => {
 		console.log(`Session process exited with code ${exitCode}`);
-		if(tabId) {
+		if (tabId) {
 			closeTabById(tabId);
 		}
-		if(exitCode !== 0) {
+		if (exitCode !== 0) {
 			addWarningToast('Session ended with non-zero exit code', `Exit code: ${exitCode}`);
 		}
-	}
+	};
 
 	const handleCommandDispatch = (command: string) => {
 		console.log('received ' + command);
@@ -65,7 +61,13 @@
 	};
 </script>
 
-<TabManager bind:this={tabManager} {forceTabBar} on:newtab={addNewTab} on:closetab={closeTab} let:tabId={screenTabId}>
+<TabManager
+	{forceTabBar}
+	{tabs}
+	on:newtab={addNewTab}
+	on:closetab={closeTab}
+	let:tabId={screenTabId}
+>
 	<TerminalScreen
 		tabId={screenTabId}
 		screenManagementDispatch={handleCommandDispatch}

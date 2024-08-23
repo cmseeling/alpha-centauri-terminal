@@ -1,19 +1,20 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import '@xterm/xterm/css/xterm.css';
 	import { Terminal } from '@xterm/xterm';
 	import { FitAddon } from '@xterm/addon-fit';
 	import { WebglAddon } from '@xterm/addon-webgl';
 	import { CanvasAddon } from '@xterm/addon-canvas';
-	import { onMount } from 'svelte';
-	import { createSession, type ShellSession } from '$lib/pty/createSession';
-	import { height, width, area } from '$lib/store/windowManagementStore';
-	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
-	import { findKeyCommand, HexMap } from '$lib/utils/keymapUtils';
 	import type { CommandKeyMap } from '$lib/types';
+	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
+	import { activeTab } from '$lib/store/tabs';
+	import { height, width, area } from '$lib/store/windowManagementStore';
+	import { createSession, type ShellSession } from '$lib/pty/createSession';
+	import { findKeyCommand, HexMap } from '$lib/utils/keymapUtils';
 
-	export let tabId: string|undefined = undefined;
+	export let tabId: string | undefined = undefined;
 	export let screenManagementDispatch: (screenCommand: string) => void;
-	export let onSessionExit: (exitCode: number, tabId: string|undefined) => void;
+	export let onSessionExit: (exitCode: number, tabId: string | undefined) => void;
 
 	let loaded = false;
 	let resizing = false;
@@ -43,12 +44,22 @@
 		console.log(tabId);
 		loaded = true;
 
-		area.subscribe(() => {
+		const areaUnsub = area.subscribe(() => {
 			requestUpdate();
+		});
+
+		const tabUnsub = activeTab.subscribe(($activeTab) => {
+			if ($activeTab === tabId && terminal) {
+				setTimeout(() => {
+					terminal.focus();
+				}, 10);
+			}
 		});
 
 		return () => {
 			cancelAnimationFrame(frame);
+			areaUnsub();
+			tabUnsub();
 			if (shellSession) {
 				shellSession.dispose();
 			}
@@ -56,13 +67,13 @@
 	});
 
 	const handleKeyMapEvent = (command: CommandKeyMap) => {
-		console.log('map found for ' + command.commandName);
+		// console.log('map found for ' + command.commandName);
 
 		if (command.commandName.includes('window')) {
 			screenManagementDispatch(command.commandName);
 			return false;
 		} else if (command.commandName in HexMap) {
-			console.log('sending hex code');
+			// console.log('sending hex code');
 			shellSession.write(HexMap[command.commandName]);
 			return false;
 		} else {
@@ -98,7 +109,7 @@
 
 		// WebGL2 or Canvas usage
 		if ($isWebGL2Enabled) {
-			console.log('using webGL2');
+			// console.log('using webGL2');
 			const webGL = new WebglAddon();
 			terminal.loadAddon(webGL);
 			webGL.onContextLoss(() => {
@@ -126,13 +137,13 @@
 			});
 
 			terminal.onData((inputData) => {
-				console.log(inputData);
+				// console.log(inputData);
 				session.write(inputData);
 			});
 
 			const handleKeyboardEvent = (event: KeyboardEvent) => {
 				if (event.type === 'keydown') {
-					console.log(event);
+					// console.log(event);
 					const command = findKeyCommand(event);
 					if (command) {
 						return handleKeyMapEvent(command);
@@ -142,7 +153,7 @@
 						session.write(' ');
 						return false;
 					} else {
-						console.log('map not found');
+						// console.log('map not found');
 						return true;
 					}
 				}
