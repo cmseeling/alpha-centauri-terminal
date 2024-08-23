@@ -10,13 +10,10 @@
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 	import { findKeyCommand, HexMap } from '$lib/utils/keymapUtils';
 	import type { CommandKeyMap } from '$lib/types';
-	import { shell } from '@tauri-apps/api';
 
+	export let tabId: string|undefined = undefined;
 	export let screenManagementDispatch: (screenCommand: string) => void;
-	export let onShellExit: (exitCode: number) => void;
-	export function updateSize() {
-		update();
-	}
+	export let onSessionExit: (exitCode: number, tabId: string|undefined) => void;
 
 	let loaded = false;
 	let resizing = false;
@@ -43,9 +40,10 @@
 	};
 
 	onMount(() => {
+		console.log(tabId);
 		loaded = true;
 
-		area.subscribe((value) => {
+		area.subscribe(() => {
 			requestUpdate();
 		});
 
@@ -124,7 +122,7 @@
 			});
 
 			session.onShellExit((exitCode: number) => {
-				onShellExit(exitCode);
+				onSessionExit(exitCode, tabId);
 			});
 
 			terminal.onData((inputData) => {

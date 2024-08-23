@@ -23,6 +23,42 @@
 	});
 
 	export const addToast = helpers.addToast;
+
+	export const addInfoToast = (message: string, details: string) => {
+		addToast({
+			data: {
+				title: message,
+				description: details,
+				bgColor: 'bg-sky-600',
+				textColor: 'text-white',
+				collapseDetails: true
+			}
+		});
+	}
+
+	export const addWarningToast = (message: string, details: string) => {
+		addToast({
+			data: {
+				title: message,
+				description: details,
+				bgColor: 'bg-yellow-500',
+				textColor: 'text-black',
+				collapseDetails: true
+			}
+		});
+	}
+
+	export const addErrorToast = (message: string, details: string) => {
+		addToast({
+			data: {
+				title: message,
+				description: details,
+				bgColor: 'bg-red-700',
+				textColor: 'text-white',
+				collapseDetails: true
+			}
+		});
+	}
 </script>
 
 <script lang="ts">

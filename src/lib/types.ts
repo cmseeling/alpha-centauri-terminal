@@ -20,3 +20,8 @@ export interface UserConfiguration {
 	keymaps: CommandKeyMap[];
 	loaded: boolean;
 }
+
+export interface Tab {
+	id: string;
+	title: string;
+}

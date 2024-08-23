@@ -2,7 +2,7 @@
 	import { listen } from '@tauri-apps/api/event';
 	import { invoke } from '@tauri-apps/api';
 	import { onMount } from 'svelte';
-	import { addToast } from '$lib/components/Toaster.svelte';
+	import { addErrorToast, addInfoToast, addToast, addWarningToast } from '$lib/components/Toaster.svelte';
 	import { TAURI_COMMAND_GET_STARTUP_NOTIFICATIONS } from './constants';
 
 	interface NotificationEvent {
@@ -17,51 +17,19 @@
 			console.log('got event');
 			switch (level) {
 				case 1: {
-					addToast({
-						data: {
-							title: message,
-							description: details,
-							bgColor: 'bg-sky-600',
-							textColor: 'text-white',
-							collapseDetails: true
-						}
-					});
+					addInfoToast(message, details);
 					break;
 				}
 				case 2: {
-					addToast({
-						data: {
-							title: message,
-							description: details,
-							bgColor: 'bg-yellow-500',
-							textColor: 'text-black',
-							collapseDetails: true
-						}
-					});
+					addWarningToast(message, details);
 					break;
 				}
 				case 3: {
-					addToast({
-						data: {
-							title: message,
-							description: details,
-							bgColor: 'bg-red-700',
-							textColor: 'text-white',
-							collapseDetails: true
-						}
-					});
+					addErrorToast(message, details);
 					break;
 				}
 				default: {
-					addToast({
-						data: {
-							title: message,
-							description: details,
-							bgColor: 'bg-red-700',
-							textColor: 'text-white',
-							collapseDetails: true
-						}
-					});
+					addErrorToast(message, details);
 					break;
 				}
 			}
