@@ -5,6 +5,19 @@ import * as store from 'svelte/store';
 
 import { findKeyCommand, matchKeyboardEvent } from './keymapUtils';
 
+const partialConfig = {
+	loaded: true,
+	window: {
+		"forceTabBar": false
+	},
+	shell: {
+		program: 'bash',
+		args: [],
+		env: {},
+		bell: true
+	},
+}
+
 test('matchKeyboardEvent finds events', async () => {
 	let keyCombo = 'a';
 	let event = {
@@ -61,13 +74,7 @@ test('findKeyCommand gets command from userConfiguration', async () => {
 		keyCombo: 'ctrl+shift+c'
 	};
 	const userConfig = {
-		loaded: true,
-		shell: {
-			program: 'bash',
-			args: [],
-			env: {},
-			bell: true
-		},
+		...partialConfig,
 		keymaps: [expectedMap]
 	};
 
@@ -98,13 +105,7 @@ test('findKeyCommand gets command from fallback map', () => {
 		keyCombo: 'ctrl+shift+c'
 	};
 	const userConfig = {
-		loaded: true,
-		shell: {
-			program: 'bash',
-			args: [],
-			env: {},
-			bell: true
-		},
+		...partialConfig,
 		keymaps: [configMap]
 	};
 
