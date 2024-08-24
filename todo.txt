@@ -5,11 +5,11 @@ Done 2. Add Rust tests
 5. Menu bar overhaul
 6. Figure out deep magic of current directory and current shell name
 7. Tab renaming
-8. Update README
+Done 8. Update README
 9. playwright test execution on linux - refer to https://trac.webkit.org/wiki/RemoteInspectorGTKandWPE
 Done 10. path to config file as argument
 Done 11. create test json configuration
 12. script to launch dev app, wait for compile + start, and start e2e test
 Done 13. make sure shell instance actually dies on window close
-14. fix window location on startup
-15. Close tab on shell exit (user types 'exit'), end program if no tabs open
+Done 14. fix window location on startup
+Done 15. Close tab on shell exit (user types 'exit'), end program if no tabs open
