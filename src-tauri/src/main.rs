@@ -58,7 +58,6 @@ type PtyHandler = u32;
 
 fn emit_error_notification<R: Runtime>(
     log_message: String,
-    level: u16,
     friendly_message: String,
     details: String,
     app_handle: AppHandle<R>,
@@ -66,13 +65,19 @@ fn emit_error_notification<R: Runtime>(
     #[cfg(debug_assertions)]
     println!("{}", log_message);
     let notification = NotificationEvent {
-        level: level,
+        level: 3,
         message: friendly_message,
         details: details,
     };
     app_handle
         .emit_all("notification-event", notification)
         .unwrap();
+}
+
+macro_rules! errfmt {
+    ($line:literal, $err:tt) => {
+        format!("Error on {}: {:?}", $line, $err)
+    };
 }
 
 #[tauri::command]
@@ -101,6 +106,8 @@ async fn create_session<R: Runtime>(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle<R>,
 ) -> Result<PtyHandler, String> {
+    let msg = "There was an error creating the shell session.";
+
     let user_config = state.user_configuration.read().await;
 
     let args = args.unwrap_or(user_config.shell.args.clone());
@@ -119,9 +126,8 @@ async fn create_session<R: Runtime>(
         })
         .map_err(|e| {
             emit_error_notification(
-                format!("Error on pty_system.openpty: {:?}", e),
-                3,
-                String::from("There was an error creating the shell session."),
+                errfmt!("pty_system.openpty", e),
+                String::from(msg),
                 format!("{:?}", e),
                 app_handle.clone(),
             );
@@ -129,9 +135,8 @@ async fn create_session<R: Runtime>(
         })?;
     let writer = pair.master.take_writer().map_err(|e| {
         emit_error_notification(
-            format!("Error on pair.master.take_writer: {:?}", e),
-            3,
-            String::from("There was an error creating the shell session."),
+            errfmt!("pair.master.take_writer", e),
+            String::from(msg),
             format!("{:?}", e),
             app_handle.clone(),
         );
@@ -139,9 +144,8 @@ async fn create_session<R: Runtime>(
     })?;
     let reader = pair.master.try_clone_reader().map_err(|e| {
         emit_error_notification(
-            format!("Error on pair.master.try_clone_reader: {:?}", e),
-            3,
-            String::from("There was an error creating the shell session."),
+            errfmt!("pair.master.try_clone_reader", e),
+            String::from(msg),
             format!("{:?}", e),
             app_handle.clone(),
         );
@@ -167,9 +171,8 @@ async fn create_session<R: Runtime>(
     }
     let child = pair.slave.spawn_command(cmd).map_err(|e| {
         emit_error_notification(
-            format!("Error on pair.slave.spawn_command: {:?}", e),
-            3,
-            String::from("There was an error creating the shell session."),
+            errfmt!("pair.slave.spawn_command", e),
+            String::from(msg),
             format!("{:?}", e),
             app_handle,
         );
@@ -196,6 +199,9 @@ async fn write_to_session(
 ) -> Result<(), String> {
     #[cfg(debug_assertions)]
     println!("Received {}", &data);
+
+    let msg = "There was an error writing to the shell session.";
+
     match state.sessions.read().await.get(&pid) {
         Some(session) => session
             .clone()
@@ -205,12 +211,8 @@ async fn write_to_session(
             .write_all(data.as_bytes())
             .map_err(|e| {
                 emit_error_notification(
-                    format!(
-                        "Error on session.clone().writer.lock().await.write_all: {:?}",
-                        e
-                    ),
-                    3,
-                    String::from("There was an error writing to the shell session."),
+                    errfmt!("session.clone().writer.lock().await.write_all", e),
+                    String::from(msg),
                     format!("{:?}", e),
                     app_handle,
                 );
@@ -222,8 +224,7 @@ async fn write_to_session(
                     "Error on state.sessions.read().await.get - session with pid={:?} not found",
                     pid
                 ),
-                3,
-                String::from("There was an error writing to the shell session."),
+                String::from(msg),
                 format!("Session not found for pid {:?}", pid),
                 app_handle,
             );
@@ -248,8 +249,7 @@ async fn read_from_session(
     let mut buf = [0u8; 1024];
     let n = session.reader.lock().await.read(&mut buf).map_err(|e| {
         emit_error_notification(
-            format!("Error on session.reader.lock().await.read: {:?}", e),
-            3,
+            errfmt!("session.reader.lock().await.read", e),
             String::from("There was an error reading from the shell session."),
             format!("{:?}", e),
             app_handle,
@@ -276,7 +276,6 @@ async fn read_from_session(
 //                     "Error on state.sessions.read().await.get - session with pid={:?} not found",
 //                     pid
 //                 ),
-//                 3,
 //                 String::from("There was an error writing to the shell session."),
 //                 format!("Session not found for pid {:?}", pid),
 //                 app_handle,
@@ -294,6 +293,7 @@ async fn resize(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    let msg = "There was an error resizing the shell session.";
     match state.sessions.read().await.get(&pid) {
         Some(session) => session
             .pair
@@ -308,9 +308,8 @@ async fn resize(
             })
             .map_err(|e| {
                 emit_error_notification(
-                    format!("Error on session.pair.lock().await.master.resize: {:?}", e),
-                    3,
-                    String::from("There was an error resizing the shell session."),
+                    errfmt!("session.pair.lock().await.master.resize", e),
+                    String::from(msg),
                     format!("{:?}", e),
                     app_handle,
                 );
@@ -322,8 +321,7 @@ async fn resize(
                     "Error on state.sessions.read().await.get - session with pid={:?} not found",
                     pid
                 ),
-                3,
-                String::from("There was an error resizing the shell session."),
+                String::from(msg),
                 format!("Session not found for pid {:?}", pid),
                 app_handle,
             );
@@ -340,12 +338,14 @@ async fn end_session(
 ) -> Result<(), String> {
     #[cfg(debug_assertions)]
     println!("ending session for pid: {:?}", pid);
+
+    let msg = "There was an error ending the shell session.";
+
     match state.sessions.read().await.get(&pid) {
         Some(session) => session.child.lock().await.kill().map_err(|e| {
             emit_error_notification(
-                format!("Error on session.child.lock().await.kill(): {:?}", e),
-                3,
-                String::from("There was an error ending the shell session."),
+                errfmt!("session.child.lock().await.kill", e),
+                String::from(msg),
                 format!("{:?}", e),
                 app_handle,
             );
@@ -357,8 +357,7 @@ async fn end_session(
                     "Error on state.sessions.read().await.get - session with pid={:?} not found",
                     pid
                 ),
-                3,
-                String::from("There was an error ending the shell session."),
+                String::from(msg),
                 format!("Session not found for pid {:?}", pid),
                 app_handle,
             );
@@ -373,15 +372,13 @@ async fn check_exit_status(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<String, String> {
+    let msg = "There was an error getting the shell session exit code.";
+
     if let Some(session) = state.sessions.read().await.get(&pid) {
         let exit_status_result = session.child.lock().await.try_wait().map_err(|e| {
             emit_error_notification(
-                format!(
-                    "Error on session.clone().child.lock().await.wait(): {:?}",
-                    e
-                ),
-                3,
-                String::from("There was an error getting the shell session exit code."),
+                errfmt!("session.child.lock().await.try_wait", e),
+                String::from(msg),
                 format!("{:?}", e),
                 app_handle.clone(),
             );
@@ -390,51 +387,43 @@ async fn check_exit_status(
         match exit_status_result {
             Ok(exit_status) => {
                 let status_result: ShellStatus = match exit_status {
-                    Some(exit_status) => {
-                        ShellStatus { has_exited: true, exit_code: Some(exit_status.exit_code()) }
+                    Some(exit_status) => ShellStatus {
+                        has_exited: true,
+                        exit_code: Some(exit_status.exit_code()),
                     },
-                    None => {
-                        ShellStatus { has_exited: false, exit_code: None }
-                    }
+                    None => ShellStatus {
+                        has_exited: false,
+                        exit_code: None,
+                    },
                 };
                 let json = serde_json::to_string(&status_result).map_err(|e| {
                     emit_error_notification(
-                        format!(
-                            "Error on configuration::serialize_user_config_with_keymap: {:?}",
-                            e
-                        ),
-                        3,
-                        String::from("There was an error getting the user configuration file."),
+                        errfmt!("serde_json::to_string", e),
+                        String::from(msg),
                         format!("{:?}", e),
                         app_handle,
                     );
                     e.to_string()
                 })?;
                 Ok(json)
-            },
+            }
             Err(e) => {
                 emit_error_notification(
-                    format!(
-                        "Error on session.clone().child.lock().await.wait(): {:?}",
-                        e
-                    ),
-                    3,
-                    String::from("There was an error getting the shell session exit code."),
+                    errfmt!("session.clone().child.lock().await.wait()", e),
+                    String::from(msg),
                     format!("{:?}", e),
                     app_handle,
                 );
                 Err(e)
             }
         }
-    }
-    else {
+    } else {
         emit_error_notification(
             format!(
                 "Error on state.sessions.read().await.get - session with pid={:?} not found",
                 pid
             ),
-            3,
-            String::from("There was an error getting the shell session exit code."),
+            String::from(msg),
             format!("Session not found for pid {:?}", pid),
             app_handle,
         );
@@ -456,11 +445,7 @@ async fn get_user_config(
 
     serde_json::to_string(&config).map_err(|e| {
         emit_error_notification(
-            format!(
-                "Error on configuration::serialize_user_config_with_keymap: {:?}",
-                e
-            ),
-            3,
+            errfmt!("configuration::serialize_user_config_with_keymap", e),
             String::from("There was an error getting the user configuration file."),
             format!("{:?}", e),
             app_handle,
