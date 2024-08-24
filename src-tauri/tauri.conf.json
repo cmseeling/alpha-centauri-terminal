@@ -44,6 +44,7 @@
         "title": "Alpha CenTauri Terminal",
         "minWidth": 300,
         "minHeight": 200,
+        "visible": false,
         "additionalBrowserArgs": "--remote-debugging-port=9222"
       }
     ],
