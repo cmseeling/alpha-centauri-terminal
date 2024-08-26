@@ -7,8 +7,7 @@ import { readText, writeText } from '@tauri-apps/api/clipboard';
 
 const HexMap: { [key: string]: string } = {
 	'edit:interrupt': '\x03',
-	'edit:select_all': '\x01',
-	'edit:carriage_return': '\x0A'
+	'edit:select_all': '\x01'
 };
 
 const fallbackMap: CommandKeyMap[] = [
@@ -21,16 +20,8 @@ const fallbackMap: CommandKeyMap[] = [
 		keyCombo: 'ctrl+shift+v'
 	},
 	{
-		commandName: 'edit:cut',
-		keyCombo: 'ctrl+shift+x'
-	},
-	{
-		commandName: 'edit:undo',
-		keyCombo: 'ctrl+shift+z'
-	},
-	{
-		commandName: 'edit:redo',
-		keyCombo: 'ctrl+shift+y'
+		commandName: 'edit:select_all',
+		keyCombo: 'ctrl+shift+a'
 	},
 	{
 		commandName: 'edit:interrupt',
@@ -53,7 +44,7 @@ const fallbackMap: CommandKeyMap[] = [
 		keyCombo: 'ctrl+shift+d'
 	},
 	{
-		commandName: 'window:new_down',
+		commandName: 'window:split_down',
 		keyCombo: 'ctrl+shift+e'
 	}
 ];
