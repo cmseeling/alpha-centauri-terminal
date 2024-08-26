@@ -1,6 +1,6 @@
 Done  1. Add Svelte tests
 Done 2. Add Rust tests
-3. Implement copy/paste/other editor commands
+Done 3. Implement copy/paste/other editor commands
 4. Implement window split and resizing
 5. Menu bar overhaul
 6. Figure out deep magic of current directory and current shell name
