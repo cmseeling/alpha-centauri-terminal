@@ -3,6 +3,7 @@ import { userConfiguration } from '$lib/store/configurationStore';
 import { get } from 'svelte/store';
 import type { ShellSession } from '$lib/pty/createSession';
 import type { Terminal } from '@xterm/xterm';
+import { readText, writeText } from '@tauri-apps/api/clipboard';
 
 const HexMap: { [key: string]: string } = {
 	'edit:interrupt': '\x03',
@@ -101,13 +102,15 @@ export const getKeyboardEventHandler = ({ session, terminal, dispatch }: { sessi
 		} else if (command.commandName === 'edit:copy') {
 			if(terminal) {
 				const contents = terminal.getSelection();
-				navigator.clipboard.writeText(contents);
+				writeText(contents);
 				return false;
 			}
 		} else if (command.commandName === 'edit:paste') {
 			if(terminal) {
-				navigator.clipboard.readText().then((text) => {
-					terminal.paste(text);
+				readText().then((text) => {
+					if(text) {
+						terminal.paste(text);
+					}
 				});
 			}
 			return false;
