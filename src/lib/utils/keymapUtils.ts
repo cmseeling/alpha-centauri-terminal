@@ -1,7 +1,6 @@
-import type { CommandKeyMap } from '$lib/types';
+import type { CommandKeyMap, ShellSession } from '$lib/types';
 import { userConfiguration } from '$lib/store/configurationStore';
 import { get } from 'svelte/store';
-import type { ShellSession } from '$lib/pty/createSession';
 import type { Terminal } from '@xterm/xterm';
 import { readText, writeText } from '@tauri-apps/api/clipboard';
 

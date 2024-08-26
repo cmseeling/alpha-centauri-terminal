@@ -7,31 +7,8 @@ import {
 	TAURI_COMMAND_CHECK_EXIT_STATUS,
 	TAURI_COMMAND_WAIT_FOR_EXIT
 } from '$lib/constants';
+import type { CreateSessionInputs, SessionTerminationStatus, ShellSession } from '$lib/types';
 import { invoke } from '@tauri-apps/api';
-
-export interface ShellSession {
-	pid: number;
-	resize: (cols: number, rows: number) => void;
-	write: (data: string) => void;
-	kill: () => void;
-	start: () => void;
-	onShellOutput: (callback: (data: string) => void) => void;
-	onShellExit: (callback: (exitCode: number) => void) => void;
-	dispose: () => void;
-}
-
-export interface CreateSessionInputs {
-	args?: string[];
-	cols?: number;
-	rows?: number;
-	currentWorkingDirectory?: string;
-	env?: { [key: string]: string };
-}
-
-interface SessionTerminationStatus {
-	hasExited: boolean;
-	exitCode: number | null;
-}
 
 export const createSession = async ({
 	args,

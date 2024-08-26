@@ -8,8 +8,9 @@
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 	import { activeTab } from '$lib/store/tabs';
 	import { height, width, area } from '$lib/store/windowManagementStore';
-	import { createSession, type ShellSession } from '$lib/pty/createSession';
+	import { createSession } from '$lib/pty/createSession';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
+	import type { ShellSession } from '$lib/types';
 
 	export let tabId: string | undefined = undefined;
 	export let screenManagementDispatch: (screenCommand: string) => void;

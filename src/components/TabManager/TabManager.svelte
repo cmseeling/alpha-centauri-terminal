@@ -55,7 +55,7 @@
 		bind:clientWidth={$width}
 	>
 		{#each tabs as tabItem (tabItem.id)}
-			<div use:melt={$content(tabItem.id)}>
+			<div use:melt={$content(tabItem.id)} class="h-full">
 				<slot tabId={tabItem.id} />
 			</div>
 		{/each}

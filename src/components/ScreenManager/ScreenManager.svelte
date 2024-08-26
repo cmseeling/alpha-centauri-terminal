@@ -4,6 +4,7 @@
 	import { addWarningToast } from '$lib/components/Toaster.svelte';
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import TerminalScreen from '$components/TerminalScreen/TerminalScreen.svelte';
+	import PaneManager from '$components/PaneManager/PaneManager.svelte';
 
 	export let forceTabBar = false;
 
@@ -68,9 +69,11 @@
 	on:closetab={closeTab}
 	let:tabId={screenTabId}
 >
-	<TerminalScreen
-		tabId={screenTabId}
-		screenManagementDispatch={handleCommandDispatch}
-		onSessionExit={handleSessionExit}
-	/>
+	<PaneManager>
+		<TerminalScreen
+			tabId={screenTabId}
+			screenManagementDispatch={handleCommandDispatch}
+			onSessionExit={handleSessionExit}
+		/>
+	</PaneManager>
 </TabManager>
