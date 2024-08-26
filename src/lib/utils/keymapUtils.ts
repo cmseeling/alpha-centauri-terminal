@@ -1,14 +1,16 @@
 import type { CommandKeyMap } from '$lib/types';
 import { userConfiguration } from '$lib/store/configurationStore';
 import { get } from 'svelte/store';
+import type { ShellSession } from '$lib/pty/createSession';
+import type { Terminal } from '@xterm/xterm';
 
-export const HexMap: { [key: string]: string } = {
+const HexMap: { [key: string]: string } = {
 	'edit:interrupt': '\x03',
 	'edit:select_all': '\x01',
 	'edit:carriage_return': '\x0A'
 };
 
-export const fallbackMap: CommandKeyMap[] = [
+const fallbackMap: CommandKeyMap[] = [
 	{
 		commandName: 'edit:copy',
 		keyCombo: 'ctrl+shift+c'
@@ -84,3 +86,51 @@ export const findKeyCommand = (event: KeyboardEvent): CommandKeyMap | undefined 
 	}
 	return mapping;
 };
+
+export const getKeyboardEventHandler = ({ session, terminal, dispatch }: { session: ShellSession, terminal: Terminal, dispatch: (screenCommand: string) => void }) => {
+	const handleKeyMapEvent = (command: CommandKeyMap): boolean => {
+		// console.log('map found for ' + command.commandName);
+
+		if (command.commandName.includes('window')) {
+			dispatch(command.commandName);
+			return false;
+		} else if (command.commandName in HexMap) {
+			// console.log('sending hex code');
+			session.write(HexMap[command.commandName]);
+			return false;
+		} else if (command.commandName === 'edit:copy') {
+			if(terminal) {
+				const contents = terminal.getSelection();
+				navigator.clipboard.writeText(contents);
+				return false;
+			}
+		} else if (command.commandName === 'edit:paste') {
+			if(terminal) {
+				navigator.clipboard.readText().then((text) => {
+					terminal.paste(text);
+				});
+			}
+			return false;
+		}
+		return true;
+	};
+
+	return (event: KeyboardEvent) => {
+		if (event.type === 'keydown') {
+			// console.log(event);
+			const command = findKeyCommand(event);
+			if (command) {
+				console.log(command)
+				event.preventDefault();
+				return handleKeyMapEvent(command);
+			}
+			// spacebar is broken for some reason
+			if (event.key === ' ') {
+				session.write(' ');
+				return false;
+			}
+			return true;
+		}
+		return false;
+	};
+}
