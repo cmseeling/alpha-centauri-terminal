@@ -6,7 +6,7 @@
 	import { WebglAddon } from '@xterm/addon-webgl';
 	import { CanvasAddon } from '@xterm/addon-canvas';
 	import type { CommandKeyMap } from '$lib/types';
-	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
+	import { isWebGL2Enabled, systemInfo, userConfiguration } from '$lib/store/configurationStore';
 	import { activeTab } from '$lib/store/tabs';
 	import { height, width, area } from '$lib/store/windowManagementStore';
 	import { createSession, type ShellSession } from '$lib/pty/createSession';
@@ -66,7 +66,7 @@
 		};
 	});
 
-	const handleKeyMapEvent = (command: CommandKeyMap) => {
+	const handleKeyMapEvent = (command: CommandKeyMap): boolean => {
 		// console.log('map found for ' + command.commandName);
 
 		if (command.commandName.includes('window')) {
@@ -76,9 +76,21 @@
 			// console.log('sending hex code');
 			shellSession.write(HexMap[command.commandName]);
 			return false;
-		} else {
-			return true;
+		} else if (command.commandName === 'edit:copy') {
+			if(terminal) {
+				const contents = terminal.getSelection();
+				navigator.clipboard.writeText(contents);
+				return false;
+			}
+		} else if (command.commandName === 'edit:paste') {
+			if(terminal) {
+				navigator.clipboard.readText().then((text) => {
+					terminal.paste(text);
+				});
+			}
+			return false;
 		}
+		return true;
 	};
 
 	function toHex(str: string) {
@@ -137,7 +149,7 @@
 			});
 
 			terminal.onData((inputData) => {
-				// console.log(inputData);
+				console.log(inputData);
 				session.write(inputData);
 			});
 
@@ -146,16 +158,16 @@
 					// console.log(event);
 					const command = findKeyCommand(event);
 					if (command) {
+						console.log(command)
+						event.preventDefault();
 						return handleKeyMapEvent(command);
 					}
 					// spacebar is broken for some reason
 					if (event.key === ' ') {
 						session.write(' ');
 						return false;
-					} else {
-						// console.log('map not found');
-						return true;
 					}
+					return true;
 				}
 				return false;
 			};

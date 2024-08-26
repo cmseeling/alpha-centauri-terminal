@@ -3,7 +3,9 @@ import { userConfiguration } from '$lib/store/configurationStore';
 import { get } from 'svelte/store';
 
 export const HexMap: { [key: string]: string } = {
-	'edit:interrupt': '\x03'
+	'edit:interrupt': '\x03',
+	'edit:select_all': '\x01',
+	'edit:carriage_return': '\x0A'
 };
 
 export const fallbackMap: CommandKeyMap[] = [

@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	import { invoke } from '@tauri-apps/api';
-	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
+	import { isWebGL2Enabled, systemInfo, userConfiguration } from '$lib/store/configurationStore';
 
 	const gl = document.createElement('canvas').getContext('webgl2');
 	if (!gl) {
@@ -16,13 +16,16 @@
 
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { TAURI_COMMAND_GET_USER_CONFIG } from '$lib/constants';
+	import { TAURI_COMMAND_GET_SYSTEM_INFO, TAURI_COMMAND_GET_USER_CONFIG } from '$lib/constants';
 
 	onMount(async () => {
 		try {
 			const configJson = await invoke<string>(TAURI_COMMAND_GET_USER_CONFIG);
 			// console.log(configJson);
 			userConfiguration.set({ ...JSON.parse(configJson), loaded: true });
+
+			const systemJson = await invoke<string>(TAURI_COMMAND_GET_SYSTEM_INFO);
+			systemInfo.set(JSON.parse(systemJson));
 		} catch (e) {
 			console.log(e);
 		}

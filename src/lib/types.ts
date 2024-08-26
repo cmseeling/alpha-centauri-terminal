@@ -14,6 +14,10 @@ export interface Shell {
 	bell: boolean;
 }
 
+export interface SystemInfo {
+	system: string;
+}
+
 export interface UserConfiguration {
 	window: Window;
 	shell: Shell;

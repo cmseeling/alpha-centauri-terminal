@@ -30,6 +30,12 @@ struct Session {
     reader: Mutex<Box<dyn std::io::Read + Send>>,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SystemInfo {
+    system: String,
+}
+
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct NotificationEvent {
@@ -198,7 +204,7 @@ async fn write_to_session(
     app_handle: AppHandle,
 ) -> Result<(), String> {
     #[cfg(debug_assertions)]
-    println!("Received {}", &data);
+    println!("Received {} - {:#04X?}", &data, &*data.as_bytes());
 
     let msg = "There was an error writing to the shell session.";
 
@@ -445,7 +451,31 @@ async fn get_user_config(
 
     serde_json::to_string(&config).map_err(|e| {
         emit_error_notification(
-            errfmt!("configuration::serialize_user_config_with_keymap", e),
+            errfmt!("serde_json::to_string", e),
+            String::from("There was an error getting the user configuration file."),
+            format!("{:?}", e),
+            app_handle,
+        );
+        e.to_string()
+    })
+}
+
+#[tauri::command]
+async fn get_system_info(app_handle: AppHandle) -> Result<String, String> {
+    let system = "unix";
+
+    #[cfg(target_os = "windows")]
+    let system = "windows";
+
+    #[cfg(target_os = "macos")]
+    let system = "macos";
+
+    let system_info = SystemInfo {
+        system: String::from(system),
+    };
+    serde_json::to_string(&system_info).map_err(|e| {
+        emit_error_notification(
+            errfmt!("serde_json::to_string", e),
             String::from("There was an error getting the user configuration file."),
             format!("{:?}", e),
             app_handle,
@@ -538,7 +568,8 @@ fn main() {
             end_session,
             check_exit_status,
             get_startup_notifications,
-            get_user_config
+            get_user_config,
+            get_system_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

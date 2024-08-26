@@ -1,5 +1,7 @@
 export const TAURI_COMMAND_GET_STARTUP_NOTIFICATIONS = 'get_startup_notifications';
 
+export const TAURI_COMMAND_GET_SYSTEM_INFO = 'get_system_info';
+
 export const TAURI_COMMAND_GET_USER_CONFIG = 'get_user_config';
 
 export const TAURI_COMMAND_CREATE_SESSION = 'create_session';
