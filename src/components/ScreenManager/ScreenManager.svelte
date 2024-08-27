@@ -5,6 +5,10 @@
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import TerminalScreen from '$components/TerminalScreen/TerminalScreen.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
+	import { addNode } from '$lib/utils/paneTreeUtils';
+	import type { TreeNode, PaneData } from '$lib/types';
+	import { onMount } from 'svelte';
+	import { userConfiguration } from '$lib/store/configurationStore';
 
 	export let forceTabBar = false;
 
@@ -60,8 +64,22 @@
 			}
 		}
 	};
+
+	let paneTree: TreeNode<PaneData>;
+	let loaded = false;
+	let unSubusrCgf;
+
+	onMount(() => {
+		unSubusrCgf = userConfiguration.subscribe(async (config) => {
+			if(config.loaded) {
+				paneTree = await addNode(null, 0, 'horizontal');
+				loaded = true;
+			}
+		});
+	})
 </script>
 
+{#if loaded && $userConfiguration.loaded}
 <TabManager
 	{forceTabBar}
 	{tabs}
@@ -69,11 +87,13 @@
 	on:closetab={closeTab}
 	let:tabId={screenTabId}
 >
-	<PaneManager>
+	<PaneManager tree={paneTree} let:session={shellSession}>
 		<TerminalScreen
 			tabId={screenTabId}
+			session={shellSession}
 			screenManagementDispatch={handleCommandDispatch}
 			onSessionExit={handleSessionExit}
 		/>
 	</PaneManager>
 </TabManager>
+{/if}

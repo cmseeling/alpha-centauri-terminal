@@ -55,13 +55,15 @@ export interface SessionTerminationStatus {
 }
 
 export interface TreeNode<T> {
-  left?: TreeNode<T>;
-  right?: TreeNode<T>;
-  data?: T;
+  data: T;
+	childNodes: TreeNode<T>[];
 }
+
+export type Direction = 'horizontal' | 'vertical';
 
 export interface PaneData {
 	nodeId: number;
-	direction: 'horizontal' | 'vertical';
+	parentNodeId?: number;
+	direction?: Direction;
 	session?: ShellSession;
 }

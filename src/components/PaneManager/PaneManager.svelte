@@ -1,17 +1,26 @@
 <script lang="ts">
+	import type { Direction, TreeNode, PaneData } from "$lib/types";
 	import { PaneGroup, Pane } from "paneforge";
 
-  type Direction = 'horizontal' | 'vertical';
+  export let tree: TreeNode<PaneData>;
 
-  let direction: Direction = 'vertical';
+  // hack for now since if direction should never be undefined at this point.
+  // TODO: handle the error if it really is undefined
+  const forceDirectionType = (direction?: Direction): Direction => {
+    return direction as Direction
+  }
 
+  console.log(tree)
 </script>
 
-<PaneGroup {direction} class="h-full" data-testid="pane-manager">
-  <Pane defaultSize={100}>
-    <slot/>
+{#if tree.childNodes.length === 0}
+<slot session={tree.data.session} />
+{:else}
+<PaneGroup direction={forceDirectionType(tree.data.direction)} class="h-full">
+  {#each tree.childNodes as node (node.data.nodeId)}
+  <Pane defaultSize={1/tree.childNodes.length}>
+    <svelte:self tree={node}/>
   </Pane>
-  <Pane defaultSize={0} class="text-white">
-    hello world
-  </Pane>
+  {/each}
 </PaneGroup>
+{/if}

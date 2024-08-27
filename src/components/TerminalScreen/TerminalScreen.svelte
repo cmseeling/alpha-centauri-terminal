@@ -8,11 +8,11 @@
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 	import { activeTab } from '$lib/store/tabs';
 	import { height, width, area } from '$lib/store/windowManagementStore';
-	import { createSession } from '$lib/pty/createSession';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
 	import type { ShellSession } from '$lib/types';
 
 	export let tabId: string | undefined = undefined;
+	export let session: ShellSession|undefined;
 	export let screenManagementDispatch: (screenCommand: string) => void;
 	export let onSessionExit: (exitCode: number, tabId: string | undefined) => void;
 
@@ -21,13 +21,13 @@
 	let frame: number;
 	let fitAddon = new FitAddon();
 	let terminal: Terminal;
-	let shellSession: ShellSession;
+	// let shellSession: ShellSession;
 
 	let update = () => {
 		resizing = false;
 		fitAddon.fit();
-		if (shellSession) {
-			shellSession.resize(terminal.cols, terminal.rows);
+		if (session) {
+			session.resize(terminal.cols, terminal.rows);
 		}
 	};
 
@@ -60,8 +60,8 @@
 			cancelAnimationFrame(frame);
 			areaUnsub();
 			tabUnsub();
-			if (shellSession) {
-				shellSession.dispose();
+			if (session) {
+				session.dispose();
 			}
 		};
 	});
@@ -105,14 +105,8 @@
 			terminal.loadAddon(new CanvasAddon());
 		}
 
-		// can't use asnyc functions for Svelte use bindings, so using .then syntax
-		createSession({
-			cols: terminal.cols,
-			rows: terminal.rows,
-			env: $userConfiguration.shell.env
-		}).then((session) => {
-			shellSession = session;
-
+		console.log(session);
+		if(session) {
 			session.onShellOutput(async (data: string) => {
 				await terminal.write(data);
 			});
@@ -131,7 +125,7 @@
 			terminal.attachCustomKeyEventHandler(handleKeyboardEvent);
 
 			session.start();
-		});
+		}
 	};
 </script>
 

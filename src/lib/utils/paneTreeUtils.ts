@@ -1,27 +1,26 @@
 import { createSession } from "$lib/pty/createSession";
-import type { TreeNode, PaneData } from "$lib/types";
+import type { TreeNode, PaneData, Direction, ShellSession } from "$lib/types";
 import { userConfiguration } from '$lib/store/configurationStore';
-import { get } from "svelte/store";
+import { get, writable } from "svelte/store";
 
-export const findNode = (root: TreeNode<PaneData>|undefined, nodeId: number): TreeNode<PaneData>|null => {
-  let returnValue: TreeNode<PaneData>|null = null;
+export const lastNodeId = writable(0);
+
+export const findNode = (
+  root: TreeNode<PaneData>|undefined,
+  nodeId: number,
+  suppliedParent: TreeNode<PaneData>|null = null
+): [TreeNode<PaneData>|null, TreeNode<PaneData>|null] => {
+  let returnValue: [TreeNode<PaneData>|null, TreeNode<PaneData>|null] = [null, null];
 
   if(root) {
-    // base case
-    if(root.left === undefined && root.right === undefined) {
-      if(root.data?.nodeId === nodeId) {
-        returnValue = root;
-      }
+    if(root.data.nodeId === nodeId) {
+      returnValue = [suppliedParent, root];
     }
     else {
-      const leftResult = findNode(root.left, nodeId);
-      if(leftResult !== null) {
-        returnValue = leftResult;
-      }
-      else {
-        const rightResult = findNode(root.right, nodeId);
-        if(rightResult !== null) {
-          returnValue = rightResult;
+      for(let i=0; i<root.childNodes.length; i++) {
+        returnValue = findNode(root.childNodes[i], nodeId, root);
+        if(returnValue !== null) {
+          break;
         }
       }
     }
@@ -30,76 +29,54 @@ export const findNode = (root: TreeNode<PaneData>|undefined, nodeId: number): Tr
   return returnValue;
 }
 
-// (null, 0) => { data: { nodeId: 1, parentNode: undefined, isLeaf: true, direction: 'horizontal', session: { pid = 1 } }, left: undefined, right: undefined }
-// (tree, 1) => { data: { nodeId: 1, parentNode: undefined, isLeaf: false, direction: 'horizontal', session: undefined }, left: { nodeId: 2, parentNode:  isLeaf: true } }
-export const addNode = async (tree: TreeNode<PaneData>|null, parentId: number): TreeNode<PaneData> => {
+const createSingleNode = async (parentNodeId?: number, session?: ShellSession) => {
+  const newId = get(lastNodeId) + 1;
+  const newNode: TreeNode<PaneData> = {
+    data: {
+      nodeId: newId,
+      parentNodeId,
+      session
+    },
+    childNodes: []
+  }
+
+  if(session === undefined) {
+    const config = get(userConfiguration);
+    console.log(config)
+    const session = await createSession({
+      env: config.shell.env
+    });
+    newNode.data!.session = session;
+  }
+
+  lastNodeId.set(newId);
+
+  return newNode;
+}
+
+export const addNode = async (tree: TreeNode<PaneData>|null, startNodeId: number, direction: Direction): Promise<TreeNode<PaneData>> => {
   if(tree === null) {
-    const newNode: TreeNode<PaneData> = {
-      data: {
-        nodeId: 1,
-        isLeaf: true,
-        direction: 'horizontal',
-      }
-    }
-
-    newNode.data!.session = await createSession({
-			env: get(userConfiguration).shell.env
-		});
-
-    return newNode
+    const newNode = await createSingleNode();
+    return newNode;
   }
   
-  const parentNode = findNode(tree, parentId);
-  if(parentNode === null) {
+  const [parentNode, startNode] = findNode(tree, startNodeId);
+  if(startNode === null) {
     return tree;
   }
-
-}
-
-
-
-interface TreeNode<T> {
-  left?: TreeNode<T>;
-  right?: TreeNode<T>;
-  data?: T;
-}
-
-let tree: TreeNode<SessionPointer> = {
-  left: {
-    data: {
-      left: {
-        data: {
-          nodeId: 1
-          session: 1
-        }
-      },
-      right: {
-        data: {
-          nodeId: 3
-          session: 3
-       }
-      }
+  else {
+    // PaneGroup is already going in the same direction so this new node can be added as a sibling
+    if (parentNode && parentNode.data.direction === direction) {
+      parentNode.childNodes.push(await createSingleNode(parentNode.data.nodeId));
     }
-  },
-  right: {
-    data: {
-      nodeId: 2
-      session: 2
+    else {
+      startNode.data.direction = direction;
+      // pass session to child
+      startNode.childNodes.push(await createSingleNode(startNode.data.nodeId, startNode.data.session));
+      startNode.childNodes.push(await createSingleNode(startNode.data.nodeId));
+      startNode.data.session = undefined;
     }
   }
-}
 
-<PaneGroup direction={data.direction}>
-{#if data.session}
-  <Pane>
-    <Terminal session={data.session}/>
-  </Pane>
-{:else}
-  <Pane>
-    <svelte:self tree={data.left}/>
-  </Pane>
-  <Pane>
-    <svelte:self tree={data.right}/>
-  </Pane>
-{/if}
-</PaneGroup>
+  return tree;
+}
