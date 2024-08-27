@@ -80,3 +80,15 @@ export const addNode = async (tree: TreeNode<PaneData>|null, startNodeId: number
 
   return tree;
 }
+
+export const removeLeafNode = (tree: TreeNode<PaneData>|null, nodeId: number): TreeNode<PaneData>|null => {
+  if(tree) {
+    const [parentNode, nodeToDelete] = findNode(tree, nodeId);
+    if(nodeToDelete) {
+      if(nodeToDelete.childNodes.length === 0) {
+        
+      }
+    }
+  }
+  return tree;
+}
