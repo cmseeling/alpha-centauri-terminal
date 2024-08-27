@@ -12,9 +12,10 @@
 	import type { ShellSession } from '$lib/types';
 
 	export let tabId: string | undefined = undefined;
+	export let nodeId: number|undefined = undefined;
 	export let session: ShellSession|undefined;
 	export let screenManagementDispatch: (screenCommand: string) => void;
-	export let onSessionExit: (exitCode: number, tabId: string | undefined) => void;
+	export let onSessionExit: (exitCode: number, tabId: string | undefined, nodeId: number | undefined) => void;
 
 	let loaded = false;
 	let resizing = false;
@@ -112,7 +113,7 @@
 			});
 
 			session.onShellExit((exitCode: number) => {
-				onSessionExit(exitCode, tabId);
+				onSessionExit(exitCode, tabId, nodeId);
 			});
 
 			terminal.onData((inputData) => {

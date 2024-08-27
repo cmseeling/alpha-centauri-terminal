@@ -14,7 +14,7 @@
 </script>
 
 {#if tree.childNodes.length === 0}
-<slot session={tree.data.session} />
+<slot session={tree.data.session} nodeId={tree.data.nodeId} />
 {:else}
 <PaneGroup direction={forceDirectionType(tree.data.direction)} class="h-full">
   {#each tree.childNodes as node (node.data.nodeId)}
