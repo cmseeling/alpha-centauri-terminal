@@ -5,10 +5,11 @@
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import TerminalScreen from '$components/TerminalScreen/TerminalScreen.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
-	import { addNode, lastNodeId, terminateSessions } from '$lib/utils/paneTreeUtils';
-	import type { TreeNode, PaneData } from '$lib/types';
+	import { addNode, createSingleNode, terminateSessions } from '$lib/utils/paneTreeUtils';
+	import type { Direction } from '$lib/types';
 	import { onMount } from 'svelte';
 	import { userConfiguration } from '$lib/store/configurationStore';
+	import { paneTrees } from '$lib/store/panes';
 
 	export let forceTabBar = false;
 
@@ -17,19 +18,18 @@
 	// }
 
 	let loaded = false;
-	let unSubusrCgf;
 	let tabs = [{ id: '1', title: 'Tab 1' }];
 	// let trees: PaneTreeMap = {};
-	let trees = new Map<string, TreeNode<PaneData>>();
+	// let trees = new Map<string, TreeNode<PaneData>>();
 
 	const addNewTab = async () => {
 		console.log('adding new tab');
 
 		const newTabId = '' + new Date().getTime();
 
-		const newTree = await addNode(null, $lastNodeId, 'horizontal');
-		trees.set(newTabId, newTree);
-		
+		const newTree = await createSingleNode();
+		$paneTrees = { ...$paneTrees, [newTabId]: newTree };
+
 		tabs = [
 			...tabs,
 			{
@@ -50,8 +50,10 @@
 		tabs = tabs.filter((tab) => {
 			return tab.id !== tabId;
 		});
-		terminateSessions(trees.get(tabId));
-		trees.delete(tabId);
+		terminateSessions($paneTrees[tabId]);
+		let clone = {...$paneTrees};
+		delete clone[tabId];
+		$paneTrees = clone;
 		if (tabs.length > 0) {
 			if ($activeTab === tabId) {
 				$activeTab = tabs[0].id;
@@ -71,31 +73,52 @@
 		}
 	};
 
-	const handleCommandDispatch = (command: string) => {
+	const addNewPane = async (tabId: string, nodeId: number, direction: Direction) => {
+		console.log(`adding new pane: ${direction}`)
+		let tree = $paneTrees[tabId];
+		if(tree) {
+			tree = await addNode(tree, nodeId, direction);
+			$paneTrees = { ...$paneTrees, [tabId]: tree };
+		}
+		console.log($paneTrees);
+	}
+
+	const handleCommandDispatch = (command: string, tabId?: string, nodeId?: number) => {
 		console.log('received ' + command);
 		switch (command) {
 			case 'window:new_tab': {
 				addNewTab();
 				break;
 			}
+			case 'window:split_right': {
+				if(tabId !== undefined && nodeId !== undefined) {
+					addNewPane(tabId, nodeId, 'horizontal');
+				}
+				break;
+			}
+			case 'window:split_down': {
+				if(tabId !== undefined && nodeId !== undefined) {
+					addNewPane(tabId, nodeId, 'vertical');
+				}
+				break;
+			}
 		}
 	};
 
 	onMount(() => {
-		unSubusrCgf = userConfiguration.subscribe(async (config) => {
+		const unSubUsrCgf = userConfiguration.subscribe(async (config) => {
 			if(config.loaded) {
-				const newNode = await addNode(null, 0, 'horizontal');
-				trees.set('1', newNode);
+				let newTree = await createSingleNode();
+				// newTree = await addNode(newTree, 1, 'horizontal')
+				$paneTrees = { ...$paneTrees, '1': newTree };
 				loaded = true;
 			}
 		});
-	});
 
-	// hack for now
-  // TODO: handle the error if it really is undefined
-  const forceGetTree = (screenTabId: string): TreeNode<PaneData> => {
-    return trees.get(screenTabId) as TreeNode<PaneData>;
-  }
+		return () => {
+			unSubUsrCgf();
+		}
+	});
 </script>
 
 {#if loaded && $userConfiguration.loaded}
@@ -106,14 +129,10 @@
 	on:closetab={closeTab}
 	let:tabId={screenTabId}
 >
-	<PaneManager tree={forceGetTree(screenTabId)} let:session={shellSession} let:nodeId={paneNodeId}>
-		<TerminalScreen
-			tabId={screenTabId}
-			nodeId={paneNodeId}
-			session={shellSession}
-			screenManagementDispatch={handleCommandDispatch}
-			onSessionExit={handleSessionExit}
-		/>
-	</PaneManager>
+	<PaneManager
+		tabId={screenTabId}
+		tree={$paneTrees[screenTabId]}
+		disspatchCommand={handleCommandDispatch}
+		onExit={handleSessionExit} />
 </TabManager>
 {/if}

@@ -38,7 +38,7 @@ export const terminateSessions = (root: TreeNode<PaneData>|undefined|null) => {
   }
 }
 
-const createSingleNode = async (parentNodeId?: number, session?: ShellSession) => {
+export const createSingleNode = async (parentNodeId?: number, session?: ShellSession) => {
   const newId = get(lastNodeId) + 1;
   const newNode: TreeNode<PaneData> = {
     data: {
@@ -51,7 +51,6 @@ const createSingleNode = async (parentNodeId?: number, session?: ShellSession) =
 
   if(session === undefined) {
     const config = get(userConfiguration);
-    console.log(config)
     const session = await createSession({
       env: config.shell.env
     });

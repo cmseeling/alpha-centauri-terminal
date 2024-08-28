@@ -14,8 +14,10 @@
 	export let tabId: string | undefined = undefined;
 	export let nodeId: number|undefined = undefined;
 	export let session: ShellSession|undefined;
-	export let screenManagementDispatch: (screenCommand: string) => void;
+	export let screenManagementDispatch: (screenCommand: string, callerTabId?: string, callerNodeId?: number) => void;
 	export let onSessionExit: (exitCode: number, tabId: string | undefined, nodeId: number | undefined) => void;
+
+	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${session?.pid}`);
 
 	let loaded = false;
 	let resizing = false;
@@ -42,7 +44,6 @@
 	};
 
 	onMount(() => {
-		console.log(tabId);
 		loaded = true;
 
 		const areaUnsub = area.subscribe(() => {
@@ -61,11 +62,17 @@
 			cancelAnimationFrame(frame);
 			areaUnsub();
 			tabUnsub();
-			if (session) {
-				session.dispose();
-			}
+			// if (session) {
+			// 	session.dispose();
+			// }
 		};
 	});
+
+	const dispatchCommand = (screenCommand: string) => {
+		if(screenManagementDispatch) {
+			screenManagementDispatch(screenCommand, tabId, nodeId);
+		}
+	}
 
 	function toHex(str: string) {
 		var result = '';
@@ -106,22 +113,24 @@
 			terminal.loadAddon(new CanvasAddon());
 		}
 
-		console.log(session);
+		// console.log(session);
 		if(session) {
 			session.onShellOutput(async (data: string) => {
 				await terminal.write(data);
 			});
 
 			session.onShellExit((exitCode: number) => {
-				onSessionExit(exitCode, tabId, nodeId);
+				if(onSessionExit) {
+					onSessionExit(exitCode, tabId, nodeId);
+				}
 			});
 
 			terminal.onData((inputData) => {
-				console.log(inputData);
+				// console.log(inputData);
 				session.write(inputData);
 			});
 
-			const handleKeyboardEvent = getKeyboardEventHandler({ session, terminal, dispatch: screenManagementDispatch });
+			const handleKeyboardEvent = getKeyboardEventHandler({ session, terminal, dispatch: dispatchCommand });
 
 			terminal.attachCustomKeyEventHandler(handleKeyboardEvent);
 

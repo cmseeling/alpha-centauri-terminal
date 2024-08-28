@@ -67,3 +67,7 @@ export interface PaneData {
 	direction?: Direction;
 	session?: ShellSession;
 }
+
+export interface TabTreeMap {
+	[tabId: string]: TreeNode<PaneData>;
+}

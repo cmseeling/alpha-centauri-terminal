@@ -49,11 +49,7 @@
 			</button>
 		</div>
 	{/if}
-	<div
-		class="h-full overflow-y-hidden bg-gray-950"
-		bind:clientHeight={$height}
-		bind:clientWidth={$width}
-	>
+	<div class="h-full overflow-y-hidden bg-gray-950">
 		{#each tabs as tabItem (tabItem.id)}
 			<div use:melt={$content(tabItem.id)} class="h-full">
 				<slot tabId={tabItem.id} />
