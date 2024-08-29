@@ -373,21 +373,45 @@ async fn end_session(
 }
 
 #[tauri::command]
-async fn wait_for_exit(pid: PtyHandler, state: tauri::State<'_, AppState>) -> Result<u32, String> {
+async fn wait_for_exit(pid: PtyHandler, state: tauri::State<'_, AppState>, app_handle: AppHandle) -> Result<u32, String> {
+    #[cfg(debug_assertions)]
     println!("getting exit status for pid: {:?}", pid);
+
+    let msg = "There was an error waiting for the shell session to exit";
+
+    // explicit match syntax was causing a bug so using ok_or_else error handling here, maybe refactor other commands to use the same
     let session = state
         .sessions
         .read()
         .await
         .get(&pid)
-        .ok_or("Unavaliable pid")?
+        .ok_or_else(|| {
+            emit_error_notification(
+                format!(
+                    "Error on state.sessions.read().await.get - session with pid={:?} not found",
+                    pid
+                ),
+                String::from(msg),
+                format!("Session not found for pid {:?}", pid),
+                app_handle.clone(),
+            );
+            "Unavaliable pid"
+        })?
         .clone();
     let exitstatus = session
         .child
         .lock()
         .await
         .wait()
-        .map_err(|e| e.to_string())?
+        .map_err(|e| {
+            emit_error_notification(
+                errfmt!("session.clone().child.lock().await.wait()", e),
+                String::from(msg),
+                format!("{:?}", e),
+                app_handle.clone(),
+            );
+            e.to_string()
+        })?
         .exit_code();
     Ok(exitstatus)
 }
