@@ -6,7 +6,6 @@ import { mockIPC } from '@tauri-apps/api/mocks';
 
 import { TAURI_COMMAND_GET_USER_CONFIG } from '$lib/constants';
 import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
-// import { writable } from 'svelte/store';
 
 import ConfigLoader from './ConfigLoader.svelte';
 

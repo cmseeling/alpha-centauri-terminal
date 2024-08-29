@@ -51,11 +51,6 @@ export interface CreateSessionInputs {
 	env?: { [key: string]: string };
 }
 
-export interface SessionTerminationStatus {
-	hasExited: boolean;
-	exitCode: number | null;
-}
-
 export interface TreeNode<T> {
 	data: T;
 	childNodes: TreeNode<T>[];

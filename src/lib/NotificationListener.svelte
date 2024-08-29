@@ -5,7 +5,6 @@
 	import {
 		addErrorToast,
 		addInfoToast,
-		addToast,
 		addWarningToast
 	} from '$lib/components/Toaster.svelte';
 	import { TAURI_COMMAND_GET_STARTUP_NOTIFICATIONS } from './constants';

@@ -62,8 +62,8 @@
 </script>
 
 <script lang="ts">
-	import { createToaster, melt } from '@melt-ui/svelte';
 	import { fly } from 'svelte/transition';
+	import { createToaster, melt } from '@melt-ui/svelte';
 	import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 	import CollapsibleDetails from './CollapsibleDetails.svelte';
 </script>

@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
+import * as store from 'svelte/store';
 
 import { userConfiguration } from '$lib/store/configurationStore';
-import * as store from 'svelte/store';
 
 import { findKeyCommand, matchKeyboardEvent } from './keymapUtils';
 

@@ -7,7 +7,6 @@
 	import { CanvasAddon } from '@xterm/addon-canvas';
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 	import { activeTab } from '$lib/store/tabs';
-	// import { height, width, area } from '$lib/store/windowManagementStore';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
 	import type { ShellSession } from '$lib/types';
 	import type { Readable } from 'svelte/store';
@@ -29,14 +28,13 @@
 		nodeId: number | undefined
 	) => void;
 
-	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${session?.pid}`);
+	// console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${session?.pid}`);
 
 	let loaded = false;
 	let resizing = false;
 	let frame: number;
 	let fitAddon = new FitAddon();
 	let terminal: Terminal;
-	// let shellSession: ShellSession;
 
 	let update = () => {
 		resizing = false;
@@ -77,9 +75,6 @@
 			cancelAnimationFrame(frame);
 			areaUnsub();
 			tabUnsub();
-			// if (session) {
-			// 	session.dispose();
-			// }
 		};
 	});
 

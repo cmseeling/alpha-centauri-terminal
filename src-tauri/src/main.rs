@@ -379,7 +379,7 @@ async fn wait_for_exit(
     app_handle: AppHandle,
 ) -> Result<u32, String> {
     #[cfg(debug_assertions)]
-    println!("getting exit status for pid: {:?}", pid);
+    println!("waiting on exit status for pid: {:?}", pid);
 
     let msg = "There was an error waiting for the shell session to exit";
 

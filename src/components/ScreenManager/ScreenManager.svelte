@@ -1,31 +1,24 @@
 <script lang="ts">
 	import { appWindow } from '@tauri-apps/api/window';
+	import { onMount } from 'svelte';
+	import type { Direction } from '$lib/types';
 	import { activeTab } from '$lib/store/tabs';
+	import { paneTrees } from '$lib/store/panes';
+	import { userConfiguration } from '$lib/store/configurationStore';
 	import { addWarningToast } from '$lib/components/Toaster.svelte';
-	import TabManager from '$components/TabManager/TabManager.svelte';
-	import TerminalScreen from '$components/TerminalScreen/TerminalScreen.svelte';
-	import PaneManager from '$components/PaneManager/PaneManager.svelte';
 	import {
 		addNode,
 		createSingleNode,
 		removeLeafNode,
 		terminateSessions
 	} from '$lib/utils/paneTreeUtils';
-	import type { Direction } from '$lib/types';
-	import { onMount } from 'svelte';
-	import { userConfiguration } from '$lib/store/configurationStore';
-	import { paneTrees } from '$lib/store/panes';
+	import TabManager from '$components/TabManager/TabManager.svelte';
+	import PaneManager from '$components/PaneManager/PaneManager.svelte';
 
 	export let forceTabBar = false;
 
-	// interface PaneTreeMap {
-	// 	[tabId: string]: TreeNode<PaneData>;
-	// }
-
 	let loaded = false;
 	let tabs = [{ id: '1', title: 'Tab 1' }];
-	// let trees: PaneTreeMap = {};
-	// let trees = new Map<string, TreeNode<PaneData>>();
 
 	const addNewTab = async () => {
 		console.log('adding new tab');
@@ -75,7 +68,6 @@
 	) => {
 		console.log(`Session process exited with code ${exitCode}`);
 		if (tabId && nodeId) {
-			// closeTabById(tabId);
 			const newTree = removeLeafNode($paneTrees[tabId], nodeId);
 			console.log(newTree);
 			if (newTree) {
@@ -125,7 +117,6 @@
 		const unSubUsrCgf = userConfiguration.subscribe(async (config) => {
 			if (config.loaded) {
 				let newTree = await createSingleNode();
-				// newTree = await addNode(newTree, 1, 'horizontal')
 				$paneTrees = { ...$paneTrees, '1': newTree };
 				loaded = true;
 			}

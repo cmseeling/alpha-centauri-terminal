@@ -1,8 +1,8 @@
-import type { CommandKeyMap, ShellSession } from '$lib/types';
-import { userConfiguration } from '$lib/store/configurationStore';
+import { readText, writeText } from '@tauri-apps/api/clipboard';
 import { get } from 'svelte/store';
 import type { Terminal } from '@xterm/xterm';
-import { readText, writeText } from '@tauri-apps/api/clipboard';
+import type { CommandKeyMap, ShellSession } from '$lib/types';
+import { userConfiguration } from '$lib/store/configurationStore';
 
 const HexMap: { [key: string]: string } = {
 	'edit:interrupt': '\x03',
@@ -121,7 +121,7 @@ export const getKeyboardEventHandler = ({
 			// console.log(event);
 			const command = findKeyCommand(event);
 			if (command) {
-				console.log(command);
+				// console.log(command);
 				event.preventDefault();
 				return handleKeyMapEvent(command);
 			}

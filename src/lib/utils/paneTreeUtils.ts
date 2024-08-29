@@ -1,7 +1,7 @@
-import { createSession } from '$lib/pty/createSession';
+import { derived, get, writable } from 'svelte/store';
 import type { TreeNode, PaneData, Direction, ShellSession } from '$lib/types';
 import { userConfiguration } from '$lib/store/configurationStore';
-import { derived, get, writable } from 'svelte/store';
+import { createSession } from '$lib/pty/createSession';
 
 export const lastNodeId = writable(0);
 
@@ -11,15 +11,12 @@ export const findNode = (
 	suppliedParent: TreeNode<PaneData> | null = null
 ): [TreeNode<PaneData> | null, TreeNode<PaneData> | null] => {
 	let returnValue: [TreeNode<PaneData> | null, TreeNode<PaneData> | null] = [null, null];
-	console.log(root);
 	if (root) {
 		if (root.data.nodeId === nodeId) {
 			returnValue = [suppliedParent, root];
 		} else {
 			for (let i = 0; i < root.childNodes.length; i++) {
-				console.log(`childe: ${i}`);
 				const [foundParent, foundNode] = findNode(root.childNodes[i], nodeId, root);
-				console.log(foundNode);
 				if (foundNode !== null) {
 					returnValue = [foundParent, foundNode];
 					break;
@@ -108,10 +105,7 @@ export const removeLeafNode = (
 	nodeId: number
 ): TreeNode<PaneData> | null => {
 	if (tree) {
-		console.log(tree);
-		console.log(nodeId);
 		const [parentNode, nodeToDelete] = findNode(tree, nodeId);
-		console.log(parentNode, nodeToDelete);
 		if (parentNode) {
 			if (nodeToDelete) {
 				// check if this node is a leaf
