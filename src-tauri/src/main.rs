@@ -373,7 +373,11 @@ async fn end_session(
 }
 
 #[tauri::command]
-async fn wait_for_exit(pid: PtyHandler, state: tauri::State<'_, AppState>, app_handle: AppHandle) -> Result<u32, String> {
+async fn wait_for_exit(
+    pid: PtyHandler,
+    state: tauri::State<'_, AppState>,
+    app_handle: AppHandle,
+) -> Result<u32, String> {
     #[cfg(debug_assertions)]
     println!("getting exit status for pid: {:?}", pid);
 

@@ -8,15 +8,15 @@ import { findKeyCommand, matchKeyboardEvent } from './keymapUtils';
 const partialConfig = {
 	loaded: true,
 	window: {
-		"forceTabBar": false
+		forceTabBar: false
 	},
 	shell: {
 		program: 'bash',
 		args: [],
 		env: {},
 		bell: true
-	},
-}
+	}
+};
 
 test('matchKeyboardEvent finds events', async () => {
 	let keyCombo = 'a';

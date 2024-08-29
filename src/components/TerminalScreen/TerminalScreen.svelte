@@ -7,15 +7,27 @@
 	import { CanvasAddon } from '@xterm/addon-canvas';
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 	import { activeTab } from '$lib/store/tabs';
-	import { height, width, area } from '$lib/store/windowManagementStore';
+	// import { height, width, area } from '$lib/store/windowManagementStore';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
 	import type { ShellSession } from '$lib/types';
+	import type { Readable } from 'svelte/store';
 
 	export let tabId: string | undefined = undefined;
-	export let nodeId: number|undefined = undefined;
-	export let session: ShellSession|undefined;
-	export let screenManagementDispatch: (screenCommand: string, callerTabId?: string, callerNodeId?: number) => void;
-	export let onSessionExit: (exitCode: number, tabId: string | undefined, nodeId: number | undefined) => void;
+	export let nodeId: number | undefined = undefined;
+	export let session: ShellSession | undefined;
+	export let height: Readable<number>;
+	export let width: Readable<number>;
+	export let area: Readable<number>;
+	export let screenManagementDispatch: (
+		screenCommand: string,
+		callerTabId?: string,
+		callerNodeId?: number
+	) => void;
+	export let onSessionExit: (
+		exitCode: number,
+		tabId: string | undefined,
+		nodeId: number | undefined
+	) => void;
 
 	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${session?.pid}`);
 
@@ -46,13 +58,16 @@
 	onMount(() => {
 		loaded = true;
 
-		const areaUnsub = area.subscribe(() => {
-			requestUpdate();
+		const areaUnsub = area.subscribe(($area) => {
+			if ($area !== 0) {
+				requestUpdate();
+			}
 		});
 
 		const tabUnsub = activeTab.subscribe(($activeTab) => {
 			if ($activeTab === tabId && terminal) {
 				setTimeout(() => {
+					terminal.scrollToBottom();
 					terminal.focus();
 				}, 10);
 			}
@@ -69,10 +84,10 @@
 	});
 
 	const dispatchCommand = (screenCommand: string) => {
-		if(screenManagementDispatch) {
+		if (screenManagementDispatch) {
 			screenManagementDispatch(screenCommand, tabId, nodeId);
 		}
-	}
+	};
 
 	function toHex(str: string) {
 		var result = '';
@@ -114,13 +129,13 @@
 		}
 
 		// console.log(session);
-		if(session) {
+		if (session) {
 			session.onShellOutput(async (data: string) => {
 				await terminal.write(data);
 			});
 
 			session.onShellExit((exitCode: number) => {
-				if(onSessionExit) {
+				if (onSessionExit) {
 					onSessionExit(exitCode, tabId, nodeId);
 				}
 			});
@@ -130,7 +145,11 @@
 				session.write(inputData);
 			});
 
-			const handleKeyboardEvent = getKeyboardEventHandler({ session, terminal, dispatch: dispatchCommand });
+			const handleKeyboardEvent = getKeyboardEventHandler({
+				session,
+				terminal,
+				dispatch: dispatchCommand
+			});
 
 			terminal.attachCustomKeyEventHandler(handleKeyboardEvent);
 

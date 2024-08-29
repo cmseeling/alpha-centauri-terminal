@@ -3,7 +3,6 @@
 	import { melt } from '@melt-ui/svelte';
 	import type { Tab } from '$lib/types';
 	import { content, list, root, trigger } from '$lib/store/tabs';
-	import { height, width } from '$lib/store/windowManagementStore';
 	import Add from 'virtual:icons/mdi/add';
 	import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 

@@ -1,3 +1,5 @@
+import type { Readable, Writable } from 'svelte/store';
+
 export interface CommandKeyMap {
 	commandName: string;
 	keyCombo: string;
@@ -55,7 +57,7 @@ export interface SessionTerminationStatus {
 }
 
 export interface TreeNode<T> {
-  data: T;
+	data: T;
 	childNodes: TreeNode<T>[];
 }
 
@@ -66,6 +68,9 @@ export interface PaneData {
 	parentNodeId?: number;
 	direction?: Direction;
 	session?: ShellSession;
+	height: Writable<number>;
+	width: Writable<number>;
+	area: Readable<number>;
 }
 
 export interface TabTreeMap {

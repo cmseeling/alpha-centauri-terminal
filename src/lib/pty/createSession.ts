@@ -86,24 +86,9 @@ export const createSession = async ({
 		}
 	};
 
-	// const _listenForExit = async () => {
-	// 	console.log('listening');
-	// 	while (!shellExited) {
-	// 		// listen for session termination
-	// 		if (onShellExitHasSubscriber) {
-	// 			const json = await invoke<string>(TAURI_COMMAND_CHECK_EXIT_STATUS, { pid });
-	// 			const terminationStatus: SessionTerminationStatus = JSON.parse(json);
-	// 			if (terminationStatus.hasExited) {
-	// 				shellExited = true;
-	// 				onShellExitCallback(terminationStatus.exitCode as number);
-	// 			}
-	// 		}
-	// 	}
-	// };
-
 	const _waitForExit = async () => {
 		console.log('waiting');
-		if(shellExited) {
+		if (shellExited) {
 			console.log('exited');
 			return;
 		}
@@ -112,7 +97,7 @@ export const createSession = async ({
 		console.log(exitCode);
 		shellExited = true;
 		onShellExitCallback(exitCode);
-	}
+	};
 
 	const dispose = () => {
 		// console.log('stopping shell session');

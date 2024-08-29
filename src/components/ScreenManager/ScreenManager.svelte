@@ -5,7 +5,12 @@
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import TerminalScreen from '$components/TerminalScreen/TerminalScreen.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
-	import { addNode, createSingleNode, terminateSessions } from '$lib/utils/paneTreeUtils';
+	import {
+		addNode,
+		createSingleNode,
+		removeLeafNode,
+		terminateSessions
+	} from '$lib/utils/paneTreeUtils';
 	import type { Direction } from '$lib/types';
 	import { onMount } from 'svelte';
 	import { userConfiguration } from '$lib/store/configurationStore';
@@ -51,7 +56,7 @@
 			return tab.id !== tabId;
 		});
 		terminateSessions($paneTrees[tabId]);
-		let clone = {...$paneTrees};
+		let clone = { ...$paneTrees };
 		delete clone[tabId];
 		$paneTrees = clone;
 		if (tabs.length > 0) {
@@ -63,10 +68,21 @@
 		}
 	};
 
-	const handleSessionExit = (exitCode: number, tabId: string | undefined, nodeId: number|undefined) => {
+	const handleSessionExit = (
+		exitCode: number,
+		tabId: string | undefined,
+		nodeId: number | undefined
+	) => {
 		console.log(`Session process exited with code ${exitCode}`);
-		if (tabId) {
-			closeTabById(tabId);
+		if (tabId && nodeId) {
+			// closeTabById(tabId);
+			const newTree = removeLeafNode($paneTrees[tabId], nodeId);
+			console.log(newTree);
+			if (newTree) {
+				$paneTrees[tabId] = newTree;
+			} else {
+				closeTabById(tabId);
+			}
 		}
 		if (exitCode !== 0) {
 			addWarningToast('Session ended with non-zero exit code', `Exit code: ${exitCode}`);
@@ -74,14 +90,14 @@
 	};
 
 	const addNewPane = async (tabId: string, nodeId: number, direction: Direction) => {
-		console.log(`adding new pane: ${direction}`)
+		console.log(`adding new pane: ${direction}`);
 		let tree = $paneTrees[tabId];
-		if(tree) {
+		if (tree) {
 			tree = await addNode(tree, nodeId, direction);
 			$paneTrees = { ...$paneTrees, [tabId]: tree };
 		}
 		console.log($paneTrees);
-	}
+	};
 
 	const handleCommandDispatch = (command: string, tabId?: string, nodeId?: number) => {
 		console.log('received ' + command);
@@ -91,13 +107,13 @@
 				break;
 			}
 			case 'window:split_right': {
-				if(tabId !== undefined && nodeId !== undefined) {
+				if (tabId !== undefined && nodeId !== undefined) {
 					addNewPane(tabId, nodeId, 'horizontal');
 				}
 				break;
 			}
 			case 'window:split_down': {
-				if(tabId !== undefined && nodeId !== undefined) {
+				if (tabId !== undefined && nodeId !== undefined) {
 					addNewPane(tabId, nodeId, 'vertical');
 				}
 				break;
@@ -107,7 +123,7 @@
 
 	onMount(() => {
 		const unSubUsrCgf = userConfiguration.subscribe(async (config) => {
-			if(config.loaded) {
+			if (config.loaded) {
 				let newTree = await createSingleNode();
 				// newTree = await addNode(newTree, 1, 'horizontal')
 				$paneTrees = { ...$paneTrees, '1': newTree };
@@ -117,22 +133,23 @@
 
 		return () => {
 			unSubUsrCgf();
-		}
+		};
 	});
 </script>
 
 {#if loaded && $userConfiguration.loaded}
-<TabManager
-	{forceTabBar}
-	{tabs}
-	on:newtab={addNewTab}
-	on:closetab={closeTab}
-	let:tabId={screenTabId}
->
-	<PaneManager
-		tabId={screenTabId}
-		tree={$paneTrees[screenTabId]}
-		disspatchCommand={handleCommandDispatch}
-		onExit={handleSessionExit} />
-</TabManager>
+	<TabManager
+		{forceTabBar}
+		{tabs}
+		on:newtab={addNewTab}
+		on:closetab={closeTab}
+		let:tabId={screenTabId}
+	>
+		<PaneManager
+			tabId={screenTabId}
+			tree={$paneTrees[screenTabId]}
+			disspatchCommand={handleCommandDispatch}
+			onExit={handleSessionExit}
+		/>
+	</TabManager>
 {/if}

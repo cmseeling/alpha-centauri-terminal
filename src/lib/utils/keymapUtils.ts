@@ -78,7 +78,15 @@ export const findKeyCommand = (event: KeyboardEvent): CommandKeyMap | undefined 
 	return mapping;
 };
 
-export const getKeyboardEventHandler = ({ session, terminal, dispatch }: { session: ShellSession, terminal: Terminal, dispatch: (screenCommand: string) => void }) => {
+export const getKeyboardEventHandler = ({
+	session,
+	terminal,
+	dispatch
+}: {
+	session: ShellSession;
+	terminal: Terminal;
+	dispatch: (screenCommand: string) => void;
+}) => {
 	const handleKeyMapEvent = (command: CommandKeyMap): boolean => {
 		// console.log('map found for ' + command.commandName);
 
@@ -90,15 +98,15 @@ export const getKeyboardEventHandler = ({ session, terminal, dispatch }: { sessi
 			session.write(HexMap[command.commandName]);
 			return false;
 		} else if (command.commandName === 'edit:copy') {
-			if(terminal) {
+			if (terminal) {
 				const contents = terminal.getSelection();
 				writeText(contents);
 				return false;
 			}
 		} else if (command.commandName === 'edit:paste') {
-			if(terminal) {
+			if (terminal) {
 				readText().then((text) => {
-					if(text) {
+					if (text) {
 						terminal.paste(text);
 					}
 				});
@@ -113,7 +121,7 @@ export const getKeyboardEventHandler = ({ session, terminal, dispatch }: { sessi
 			// console.log(event);
 			const command = findKeyCommand(event);
 			if (command) {
-				console.log(command)
+				console.log(command);
 				event.preventDefault();
 				return handleKeyMapEvent(command);
 			}
@@ -126,4 +134,4 @@ export const getKeyboardEventHandler = ({ session, terminal, dispatch }: { sessi
 		}
 		return false;
 	};
-}
+};
