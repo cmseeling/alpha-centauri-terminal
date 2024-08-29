@@ -21,7 +21,7 @@
 	let tabs = [{ id: '1', title: 'Tab 1' }];
 
 	const addNewTab = async () => {
-		console.log('adding new tab');
+		// console.log('adding new tab');
 
 		const newTabId = '' + new Date().getTime();
 
@@ -44,7 +44,7 @@
 	};
 
 	const closeTabById = (tabId: string) => {
-		console.log('closing tab ' + tabId);
+		// console.log('closing tab ' + tabId);
 		tabs = tabs.filter((tab) => {
 			return tab.id !== tabId;
 		});
@@ -66,10 +66,10 @@
 		tabId: string | undefined,
 		nodeId: number | undefined
 	) => {
-		console.log(`Session process exited with code ${exitCode}`);
+		// console.log(`Session process exited with code ${exitCode}`);
 		if (tabId && nodeId) {
 			const newTree = removeLeafNode($paneTrees[tabId], nodeId);
-			console.log(newTree);
+			// console.log(newTree);
 			if (newTree) {
 				$paneTrees[tabId] = newTree;
 			} else {
@@ -82,17 +82,17 @@
 	};
 
 	const addNewPane = async (tabId: string, nodeId: number, direction: Direction) => {
-		console.log(`adding new pane: ${direction}`);
+		// console.log(`adding new pane: ${direction}`);
 		let tree = $paneTrees[tabId];
 		if (tree) {
 			tree = await addNode(tree, nodeId, direction);
 			$paneTrees = { ...$paneTrees, [tabId]: tree };
 		}
-		console.log($paneTrees);
+		// console.log($paneTrees);
 	};
 
 	const handleCommandDispatch = (command: string, tabId?: string, nodeId?: number) => {
-		console.log('received ' + command);
+		// console.log('received ' + command);
 		switch (command) {
 			case 'window:new_tab': {
 				addNewTab();

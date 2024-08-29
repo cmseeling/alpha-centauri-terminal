@@ -17,8 +17,6 @@
 		nodeId: number | undefined
 	) => void;
 
-	console.log(tree);
-
 	// hack for now since if direction should never be undefined at this point.
 	// TODO: handle the error if it really is undefined
 	const forceDirectionType = (direction?: Direction): Direction => {
