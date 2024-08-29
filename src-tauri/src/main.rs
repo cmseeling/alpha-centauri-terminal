@@ -373,6 +373,26 @@ async fn end_session(
 }
 
 #[tauri::command]
+async fn wait_for_exit(pid: PtyHandler, state: tauri::State<'_, AppState>) -> Result<u32, String> {
+    println!("getting exit status for pid: {:?}", pid);
+    let session = state
+        .sessions
+        .read()
+        .await
+        .get(&pid)
+        .ok_or("Unavaliable pid")?
+        .clone();
+    let exitstatus = session
+        .child
+        .lock()
+        .await
+        .wait()
+        .map_err(|e| e.to_string())?
+        .exit_code();
+    Ok(exitstatus)
+}
+
+#[tauri::command]
 async fn check_exit_status(
     pid: PtyHandler,
     state: tauri::State<'_, AppState>,
@@ -566,6 +586,7 @@ fn main() {
             read_from_session,
             resize,
             end_session,
+            wait_for_exit,
             check_exit_status,
             get_startup_notifications,
             get_user_config,

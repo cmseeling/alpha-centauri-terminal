@@ -72,7 +72,10 @@ pub fn generate_default_user_config() -> UserConfigFS {
         keymaps: HashMap::from([
             (String::from("edit:copy"), String::from("ctrl+shift+c")),
             (String::from("edit:paste"), String::from("ctrl+shift+v")),
-            (String::from("edit:select_all"), String::from("ctrl+shift+a")),
+            (
+                String::from("edit:select_all"),
+                String::from("ctrl+shift+a"),
+            ),
             (String::from("edit:interrupt"), String::from("ctrl+c")),
             (String::from("window:new_tab"), String::from("ctrl+shift+t")),
             (

@@ -4,7 +4,8 @@ import {
 	TAURI_COMMAND_WRITE_TO_SESSION,
 	TAURI_COMMAND_END_SESSION,
 	TAURI_COMMAND_READ_FROM_SESSION,
-	TAURI_COMMAND_CHECK_EXIT_STATUS
+	TAURI_COMMAND_CHECK_EXIT_STATUS,
+	TAURI_COMMAND_WAIT_FOR_EXIT
 } from '$lib/constants';
 import { invoke } from '@tauri-apps/api';
 
@@ -83,17 +84,16 @@ export const createSession = async ({
 		onShellExitHasSubscriber = true;
 	};
 
-	// todo: look into using a web worker for this - edit: web worker won't work without implementing a custom uri protocol
 	const start = () => {
-		_listenForExit();
 		_listenToReader();
+		_waitForExit();
 	};
 
 	const _listenToReader = async () => {
 		// listen to session output
 		try {
 			while (sessionActive && pid !== null) {
-				// console.log('reading');
+				console.log('reading');
 				if (onShellOutputHasSubscriber) {
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
 					onShellOutputCallback(shellData);
@@ -109,20 +109,33 @@ export const createSession = async ({
 		}
 	};
 
-	const _listenForExit = async () => {
-		// console.log('listening');
-		while (!shellExited) {
-			// listen for session termination
-			if (onShellExitHasSubscriber) {
-				const json = await invoke<string>(TAURI_COMMAND_CHECK_EXIT_STATUS, { pid });
-				const terminationStatus: SessionTerminationStatus = JSON.parse(json);
-				if (terminationStatus.hasExited) {
-					shellExited = true;
-					onShellExitCallback(terminationStatus.exitCode as number);
-				}
-			}
+	// const _listenForExit = async () => {
+	// 	console.log('listening');
+	// 	while (!shellExited) {
+	// 		// listen for session termination
+	// 		if (onShellExitHasSubscriber) {
+	// 			const json = await invoke<string>(TAURI_COMMAND_CHECK_EXIT_STATUS, { pid });
+	// 			const terminationStatus: SessionTerminationStatus = JSON.parse(json);
+	// 			if (terminationStatus.hasExited) {
+	// 				shellExited = true;
+	// 				onShellExitCallback(terminationStatus.exitCode as number);
+	// 			}
+	// 		}
+	// 	}
+	// };
+
+	const _waitForExit = async () => {
+		console.log('waiting');
+		if(shellExited) {
+			console.log('exited');
+			return;
 		}
-	};
+
+		const exitCode = await invoke<number>(TAURI_COMMAND_WAIT_FOR_EXIT, { pid });
+		console.log(exitCode);
+		shellExited = true;
+		onShellExitCallback(exitCode);
+	}
 
 	const dispose = () => {
 		// console.log('stopping shell session');
