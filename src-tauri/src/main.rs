@@ -359,13 +359,12 @@ async fn end_session(
                     if e_str.contains("The parameter is incorrect.") {
                         // windows issue killing the child process cleanly
                         Ok(())
-                    }
-                    else {
+                    } else {
                         Err(e.to_string())
                     }
                 }
             }
-        },
+        }
         None => {
             emit_error_notification(
                 format!(

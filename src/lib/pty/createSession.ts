@@ -103,9 +103,8 @@ export const createSession = async ({
 		});
 	};
 
-	const dispose = (caller?: string) => {
-		console.log(caller);
-		console.log(`stopping shell session with pid = ${pid}`);
+	const dispose = () => {
+		// console.log(`stopping shell session with pid = ${pid}`);
 		kill();
 		sessionActive = false;
 		pid = null;

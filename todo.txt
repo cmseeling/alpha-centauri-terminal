@@ -13,3 +13,4 @@ Done 11. create test json configuration
 Done 13. make sure shell instance actually dies on window close
 Done 14. fix window location on startup
 Done 15. Close tab on shell exit (user types 'exit'), end program if no tabs open
+16. Investigate why child_killer call throws error

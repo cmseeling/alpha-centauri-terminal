@@ -40,7 +40,7 @@ export interface ShellSession {
 	start: () => void;
 	onShellOutput: (callback: (data: string) => void) => void;
 	onShellExit: (callback: (exitStatus: SessionExitStatus) => void) => void;
-	dispose: (caller?: string) => void;
+	dispose: () => void;
 }
 
 export interface CreateSessionInputs {

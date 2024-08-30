@@ -14,7 +14,7 @@
 	onMount(() => {
 		let unlisten: () => void;
 		listen<NotificationEvent>('notification-event', ({ payload: { level, message, details } }) => {
-			console.log('got event');
+			// console.log('got event');
 			switch (level) {
 				case 1: {
 					addInfoToast(message, details);
