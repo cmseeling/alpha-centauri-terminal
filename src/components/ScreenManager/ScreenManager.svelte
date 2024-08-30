@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { appWindow } from '@tauri-apps/api/window';
 	import { onMount } from 'svelte';
-	import type { Direction } from '$lib/types';
+	import type { Direction, SessionExitStatus } from '$lib/types';
 	import { activeTab } from '$lib/store/tabs';
 	import { paneTrees } from '$lib/store/panes';
 	import { userConfiguration } from '$lib/store/configurationStore';
@@ -44,14 +44,15 @@
 	};
 
 	const closeTabById = (tabId: string) => {
-		// console.log('closing tab ' + tabId);
-		tabs = tabs.filter((tab) => {
-			return tab.id !== tabId;
-		});
+		console.log('closing tab ' + tabId);
 		terminateSessions($paneTrees[tabId]);
 		let clone = { ...$paneTrees };
 		delete clone[tabId];
 		$paneTrees = clone;
+		console.log($paneTrees);
+		tabs = tabs.filter((tab) => {
+			return tab.id !== tabId;
+		});
 		if (tabs.length > 0) {
 			if ($activeTab === tabId) {
 				$activeTab = tabs[0].id;
@@ -62,7 +63,7 @@
 	};
 
 	const handleSessionExit = (
-		exitCode: number,
+		exitStatus: SessionExitStatus,
 		tabId: string | undefined,
 		nodeId: number | undefined
 	) => {
@@ -76,8 +77,8 @@
 				closeTabById(tabId);
 			}
 		}
-		if (exitCode !== 0) {
-			addWarningToast('Session ended with non-zero exit code', `Exit code: ${exitCode}`);
+		if (!exitStatus.success) {
+			addWarningToast('Session ended with non-zero exit code', `Exit code: ${exitStatus.exitCode}`);
 		}
 	};
 

@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api';
-import type { CreateSessionInputs, ShellSession } from '$lib/types';
+import type { CreateSessionInputs, SessionExitStatus, ShellSession } from '$lib/types';
 import {
 	TAURI_COMMAND_CREATE_SESSION,
 	TAURI_COMMAND_RESIZE,
@@ -19,9 +19,10 @@ export const createSession = async ({
 	let pid: number | null = null;
 	let onShellOutputCallback: (data: string) => void = () => {};
 	let onShellOutputHasSubscriber = false;
-	let onShellExitCallback: (exitCode: number) => void = () => {};
+	let onShellExitCallback: (exitStatus: SessionExitStatus) => void = () => {};
 	let onShellExitHasSubscriber = false;
 	let shellExited = false;
+	let killCommandSent = false;
 
 	pid = await invoke<number>(TAURI_COMMAND_CREATE_SESSION, {
 		args,
@@ -47,6 +48,7 @@ export const createSession = async ({
 	const kill = () => {
 		if (pid != null) {
 			invoke(TAURI_COMMAND_END_SESSION, { pid });
+			killCommandSent = true;
 		}
 	};
 
@@ -55,7 +57,7 @@ export const createSession = async ({
 		onShellOutputHasSubscriber = true;
 	};
 
-	const onShellExit = (callback: (exitCode: number) => void) => {
+	const onShellExit = (callback: (exitStatus: SessionExitStatus) => void) => {
 		onShellExitCallback = callback;
 		onShellExitHasSubscriber = true;
 	};
@@ -95,11 +97,15 @@ export const createSession = async ({
 		const exitCode = await invoke<number>(TAURI_COMMAND_WAIT_FOR_EXIT, { pid });
 		// console.log(exitCode);
 		shellExited = true;
-		onShellExitCallback(exitCode);
+		onShellExitCallback({
+			exitCode,
+			success: exitCode === 0 || (exitCode === 1 && killCommandSent)
+		});
 	};
 
-	const dispose = () => {
-		// console.log('stopping shell session');
+	const dispose = (caller?: string) => {
+		console.log(caller);
+		console.log(`stopping shell session with pid = ${pid}`);
 		kill();
 		sessionActive = false;
 		pid = null;

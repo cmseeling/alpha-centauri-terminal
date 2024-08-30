@@ -39,8 +39,8 @@ export interface ShellSession {
 	kill: () => void;
 	start: () => void;
 	onShellOutput: (callback: (data: string) => void) => void;
-	onShellExit: (callback: (exitCode: number) => void) => void;
-	dispose: () => void;
+	onShellExit: (callback: (exitStatus: SessionExitStatus) => void) => void;
+	dispose: (caller?: string) => void;
 }
 
 export interface CreateSessionInputs {
@@ -49,6 +49,11 @@ export interface CreateSessionInputs {
 	rows?: number;
 	currentWorkingDirectory?: string;
 	env?: { [key: string]: string };
+}
+
+export interface SessionExitStatus {
+	exitCode: number | null;
+	success: boolean;
 }
 
 export interface TreeNode<T> {

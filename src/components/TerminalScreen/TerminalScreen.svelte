@@ -8,7 +8,7 @@
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 	import { activeTab } from '$lib/store/tabs';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
-	import type { ShellSession } from '$lib/types';
+	import type { SessionExitStatus, ShellSession } from '$lib/types';
 	import type { Readable } from 'svelte/store';
 
 	export let tabId: string | undefined = undefined;
@@ -23,7 +23,7 @@
 		callerNodeId?: number
 	) => void;
 	export let onSessionExit: (
-		exitCode: number,
+		exitStatus: SessionExitStatus,
 		tabId: string | undefined,
 		nodeId: number | undefined
 	) => void;
@@ -129,9 +129,9 @@
 				await terminal.write(data);
 			});
 
-			session.onShellExit((exitCode: number) => {
+			session.onShellExit((exitStatus: SessionExitStatus) => {
 				if (onSessionExit) {
-					onSessionExit(exitCode, tabId, nodeId);
+					onSessionExit(exitStatus, tabId, nodeId);
 				}
 			});
 

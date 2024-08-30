@@ -29,8 +29,11 @@ export const findNode = (
 };
 
 export const terminateSessions = (root: TreeNode<PaneData> | undefined | null) => {
-	if (root) {
-		root.data.session?.dispose();
+	console.log(root);
+  if (root) {
+    if(root.data.session && root.data.session.pid) {
+      root.data.session.dispose('paneTreeUtils');
+    }
 		for (let i = 0; i < root.childNodes.length; i++) {
 			terminateSessions(root.childNodes[i]);
 		}

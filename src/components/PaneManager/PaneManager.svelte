@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { PaneGroup, Pane, PaneResizer } from 'paneforge';
-	import type { Direction, TreeNode, PaneData } from '$lib/types';
+	import type { Direction, TreeNode, PaneData, SessionExitStatus } from '$lib/types';
 	import TerminalScreen from '$components/TerminalScreen/TerminalScreen.svelte';
 
 	export let tabId: string;
@@ -12,7 +12,7 @@
 		callerNodeId?: number
 	) => void;
 	export let onExit: (
-		exitCode: number,
+		exitStatus: SessionExitStatus,
 		tabId: string | undefined,
 		nodeId: number | undefined
 	) => void;
