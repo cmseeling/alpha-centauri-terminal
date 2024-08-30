@@ -15,7 +15,7 @@ use tauri::{
     AppHandle, Manager, Runtime,
 };
 
-use portable_pty::{native_pty_system, Child, CommandBuilder, PtyPair, PtySize};
+use portable_pty::{native_pty_system, Child, ChildKiller, CommandBuilder, PtyPair, PtySize};
 
 use serde::Serialize;
 
@@ -26,6 +26,7 @@ mod usr_conf;
 struct Session {
     pair: Mutex<PtyPair>,
     child: Mutex<Box<dyn Child + Send + Sync>>,
+    child_killer: Mutex<Box<dyn ChildKiller + Send + Sync>>,
     writer: Mutex<Box<dyn std::io::Write + Send>>,
     reader: Mutex<Box<dyn std::io::Read + Send>>,
 }
@@ -184,11 +185,13 @@ async fn create_session<R: Runtime>(
         );
         e.to_string()
     })?;
+    let child_killer = child.clone_killer();
     let handler = state.last_session_id.fetch_add(1, Ordering::Relaxed);
 
     let pair = Arc::new(Session {
         pair: Mutex::new(pair),
         child: Mutex::new(child),
+        child_killer: Mutex::new(child_killer),
         writer: Mutex::new(writer),
         reader: Mutex::new(reader),
     });
@@ -348,15 +351,21 @@ async fn end_session(
     let msg = "There was an error ending the shell session.";
 
     match state.sessions.read().await.get(&pid) {
-        Some(session) => session.child.lock().await.kill().map_err(|e| {
-            emit_error_notification(
-                errfmt!("session.child.lock().await.kill", e),
-                String::from(msg),
-                format!("{:?}", e),
-                app_handle,
-            );
-            e.to_string()
-        }),
+        Some(session) => {
+            match session.child_killer.lock().await.kill() {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    let e_str = e.to_string();
+                    if e_str.contains("The parameter is incorrect.") {
+                        // windows issue killing the child process cleanly
+                        Ok(())
+                    }
+                    else {
+                        Err(e.to_string())
+                    }
+                }
+            }
+        },
         None => {
             emit_error_notification(
                 format!(
