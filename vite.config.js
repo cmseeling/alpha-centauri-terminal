@@ -30,6 +30,13 @@ export default defineConfig(async () => ({
 	test: {
 		environment: 'jsdom',
 		setupFiles: ['./vitest-setup.js'],
-		include: ['src/**/*.{test,spec}.{js,ts}']
+		include: ['src/**/*.{test,spec}.{js,ts}'],
+		coverage: {
+			enabled: true,
+			include: ['src/**'],
+			exclude: [
+				'src/routes/**',
+			]
+		}
 	}
 }));

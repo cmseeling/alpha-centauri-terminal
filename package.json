@@ -15,6 +15,7 @@
 		"tauri:testing": "tauri dev -- -- ../tests/testingConfig.json",
 		"test:svelte": "vitest",
 		"test:svelte:ui": "vitest --ui",
+		"test:svelte:coverage": "vitest run --coverage",
 		"test:e2e": "playwright test"
 	},
 	"license": "GPL-3.0-only",
@@ -40,6 +41,7 @@
 		"@testing-library/user-event": "^14.5.2",
 		"@types/eslint": "^9.6.0",
 		"@types/node": "^22.4.0",
+		"@vitest/coverage-v8": "^2.0.5",
 		"@vitest/ui": "^2.0.5",
 		"autoprefixer": "^10.4.20",
 		"eslint": "^9.9.0",
