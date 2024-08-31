@@ -248,6 +248,9 @@ async fn read_from_session(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<String, String> {
+    #[cfg(debug_assertions)]
+    println!("Reading from session {:?}", pid);
+
     let session = state
         .sessions
         .read()

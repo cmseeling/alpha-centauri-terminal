@@ -93,7 +93,7 @@
 	}
 
 	const xtermJs = (node: HTMLElement) => {
-		// console.log('mounting xterm');
+		console.log('mounting xterm');
 		// console.log(node.parentElement);
 		// console.log(node.parentElement?.style.backgroundColor);
 
