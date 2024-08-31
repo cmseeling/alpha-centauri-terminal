@@ -118,20 +118,14 @@ export const getKeyboardEventHandler = ({
 
 	return (event: KeyboardEvent) => {
 		if (event.type === 'keydown') {
-			// console.log(event);
+			console.log(event);
 			const command = findKeyCommand(event);
 			if (command) {
-				// console.log(command);
+				console.log(command);
 				event.preventDefault();
 				return handleKeyMapEvent(command);
 			}
-			// spacebar is broken for some reason
-			if (event.key === ' ') {
-				session.write(' ');
-				return false;
-			}
-			return true;
 		}
-		return false;
+		return true;
 	};
 };
