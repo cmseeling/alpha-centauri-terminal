@@ -92,6 +92,9 @@ async fn get_startup_notifications(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    #[cfg(debug_assertions)]
+    println!("getting startup notifications");
+
     for notification in state.startup_notifications.read().await.iter() {
         app_handle
             .emit_all("notification-event", notification)
@@ -113,6 +116,9 @@ async fn create_session<R: Runtime>(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle<R>,
 ) -> Result<PtyHandler, String> {
+    #[cfg(debug_assertions)]
+    println!("Creating session");
+
     let msg = "There was an error creating the shell session.";
 
     let user_config = state.user_configuration.read().await;
@@ -305,6 +311,9 @@ async fn resize(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    #[cfg(debug_assertions)]
+    println!("Resizing session {:?}", pid);
+
     let msg = "There was an error resizing the shell session.";
     match state.sessions.read().await.get(&pid) {
         Some(session) => session
@@ -437,6 +446,9 @@ async fn check_exit_status(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<String, String> {
+    #[cfg(debug_assertions)]
+    println!("Checking exit status for {:?}", pid);
+
     let msg = "There was an error getting the shell session exit code.";
 
     if let Some(session) = state.sessions.read().await.get(&pid) {
@@ -501,6 +513,9 @@ async fn get_user_config(
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<String, String> {
+    #[cfg(debug_assertions)]
+    println!("Getting user config");
+
     let state_config = state.user_configuration.read().await;
     let config = usr_conf::UserConfigJS {
         window: state_config.window.clone(),
@@ -521,6 +536,9 @@ async fn get_user_config(
 
 #[tauri::command]
 async fn get_system_info(app_handle: AppHandle) -> Result<String, String> {
+    #[cfg(debug_assertions)]
+    println!("getting system info");
+
     let system = "unix";
 
     #[cfg(target_os = "windows")]

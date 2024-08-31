@@ -45,6 +45,7 @@
 	};
 
 	const requestUpdate = () => {
+		console.log('update requested');
 		if (!resizing) {
 			if (update) {
 				frame = requestAnimationFrame(update);
@@ -65,6 +66,7 @@
 		const tabUnsub = activeTab.subscribe(($activeTab) => {
 			if ($activeTab === tabId && terminal) {
 				setTimeout(() => {
+					requestUpdate();
 					terminal.scrollToBottom();
 					terminal.focus();
 				}, 10);
