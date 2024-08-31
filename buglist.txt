@@ -1,0 +1,4 @@
+1. Opening a new tab and switching to another tab - terminal isn't there
+2. shift key not working for text entry
+3. Need to focus a terminal on the current tab when pane closes that had focus
+4. Opening more than 2 panes in the same direction does not resize existing panes evenly

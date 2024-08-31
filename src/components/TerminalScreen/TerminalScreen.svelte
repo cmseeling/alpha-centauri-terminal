@@ -116,6 +116,7 @@
 			const webGL = new WebglAddon();
 			terminal.loadAddon(webGL);
 			webGL.onContextLoss(() => {
+				console.log('webGL2 context lost')
 				webGL.dispose();
 				terminal.loadAddon(new CanvasAddon());
 			});

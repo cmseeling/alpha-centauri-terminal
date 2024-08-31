@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { PaneGroup, Pane, PaneResizer } from 'paneforge';
+	import { PaneGroup, Pane } from 'paneforge';
 	import type { Direction, TreeNode, PaneData, SessionExitStatus } from '$lib/types';
 	import TerminalScreen from '$components/TerminalScreen/TerminalScreen.svelte';
+	import Divider from './Divider.svelte';
 
 	export let tabId: string;
 
@@ -22,6 +23,12 @@
 	const forceDirectionType = (direction?: Direction): Direction => {
 		return direction as Direction;
 	};
+
+	const getDefaultSize = () => {
+		const fraction = 1 / tree.childNodes.length;
+		console.log(fraction);
+		return fraction * 100;
+	}
 
 	$: height = tree.data.height;
 	$: width = tree.data.width;
@@ -51,10 +58,13 @@
 		class="h-full"
 		data-testid="pane-group"
 	>
-		{#each tree.childNodes as node (node.data.nodeId)}
-			<Pane defaultSize={1 / tree.childNodes.length} data-testid={`pane-${node.data.nodeId}`}>
+		{#each tree.childNodes as node, i (node.data.nodeId)}
+			<Pane defaultSize={getDefaultSize()} data-testid={`pane-${node.data.nodeId}`}>
 				<svelte:self {tabId} tree={node} {disspatchCommand} {onExit} />
 			</Pane>
+			{#if i < tree.childNodes.length - 1}
+			<Divider direction={forceDirectionType(tree.data.direction)}/>
+			{/if}
 		{/each}
 	</PaneGroup>
 {/if}

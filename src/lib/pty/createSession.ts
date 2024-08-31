@@ -71,7 +71,7 @@ export const createSession = async ({
 		// listen to session output
 		try {
 			while (sessionActive && pid !== null) {
-				// console.log('reading');
+				console.log('reading');
 				if (onShellOutputHasSubscriber) {
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
 					onShellOutputCallback(shellData);
