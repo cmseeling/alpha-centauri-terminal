@@ -58,6 +58,7 @@
 		loaded = true;
 
 		const areaUnsub = area.subscribe(($area) => {
+			console.log(`resizing for tab ${tabId} : node ${nodeId}`);
 			if ($area !== 0) {
 				requestUpdate();
 			}
@@ -67,13 +68,14 @@
 			if ($activeTab === tabId && terminal) {
 				setTimeout(() => {
 					requestUpdate();
-					terminal.scrollToBottom();
+					// terminal.scrollToBottom();
 					terminal.focus();
 				}, 10);
 			}
 		});
 
 		return () => {
+			console.log('terminal unmounting');
 			cancelAnimationFrame(frame);
 			areaUnsub();
 			tabUnsub();
