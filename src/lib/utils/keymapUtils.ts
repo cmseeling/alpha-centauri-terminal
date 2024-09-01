@@ -118,10 +118,10 @@ export const getKeyboardEventHandler = ({
 
 	return (event: KeyboardEvent) => {
 		if (event.type === 'keydown') {
-			console.log(event);
+			// console.log(event);
 			const command = findKeyCommand(event);
 			if (command) {
-				console.log(command);
+				// console.log(command);
 				event.preventDefault();
 				return handleKeyMapEvent(command);
 			}
