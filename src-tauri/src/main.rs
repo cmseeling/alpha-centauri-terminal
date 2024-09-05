@@ -4,10 +4,7 @@
 use std::{
     collections::{BTreeMap, HashMap},
     ffi::OsString,
-    sync::{
-        atomic::{AtomicU32, Ordering},
-        Arc,
-    },
+    sync::Arc,
 };
 
 use tauri::{
@@ -15,7 +12,7 @@ use tauri::{
     AppHandle, Manager, Runtime,
 };
 
-use portable_pty::{native_pty_system, Child, ChildKiller, CommandBuilder, PtyPair, PtySize};
+use portable_pty::{native_pty_system, Child, ChildKiller, CommandBuilder, MasterPty, PtySize};
 
 use serde::Serialize;
 
@@ -24,7 +21,7 @@ use dir::home_dir;
 mod usr_conf;
 
 struct Session {
-    pair: Mutex<PtyPair>,
+    master: Mutex<Box<dyn MasterPty + Send>>,
     child: Mutex<Box<dyn Child + Send + Sync>>,
     child_killer: Mutex<Box<dyn ChildKiller + Send + Sync>>,
     writer: Mutex<Box<dyn std::io::Write + Send>>,
@@ -55,7 +52,6 @@ struct ShellStatus {
 
 #[derive(Default)]
 struct AppState {
-    last_session_id: AtomicU32,
     sessions: RwLock<BTreeMap<PtyHandler, Arc<Session>>>,
     user_configuration: RwLock<usr_conf::UserConfigFS>,
     startup_notifications: RwLock<Vec<NotificationEvent>>,
@@ -187,22 +183,32 @@ async fn create_session<R: Runtime>(
             errfmt!("pair.slave.spawn_command", e),
             String::from(msg),
             format!("{:?}", e),
-            app_handle,
+            app_handle.clone(),
         );
         e.to_string()
     })?;
+    drop(pair.slave);
     let child_killer = child.clone_killer();
-    let handler = state.last_session_id.fetch_add(1, Ordering::Relaxed);
-
-    let pair = Arc::new(Session {
-        pair: Mutex::new(pair),
-        child: Mutex::new(child),
-        child_killer: Mutex::new(child_killer),
-        writer: Mutex::new(writer),
-        reader: Mutex::new(reader),
-    });
-    state.sessions.write().await.insert(handler, pair);
-    Ok(handler)
+    if let Some(handler) = child.process_id() {
+            let session = Arc::new(Session {
+            master: Mutex::new(pair.master),
+            child: Mutex::new(child),
+            child_killer: Mutex::new(child_killer),
+            writer: Mutex::new(writer),
+            reader: Mutex::new(reader),
+        });
+        state.sessions.write().await.insert(handler, session);
+        Ok(handler)
+    }
+    else {
+        emit_error_notification(
+            String::from("child.process_id() returned None"),
+            String::from("Could not open terminal"),
+            String::from("When attempting to fork child process for new terminal instance, pid was not found"),
+            app_handle
+        );
+        Err(String::from("no pid for child"))
+    }
 }
 
 #[tauri::command]
@@ -317,10 +323,9 @@ async fn resize(
     let msg = "There was an error resizing the shell session.";
     match state.sessions.read().await.get(&pid) {
         Some(session) => session
-            .pair
+            .master
             .lock()
             .await
-            .master
             .resize(PtySize {
                 rows,
                 cols,
@@ -619,7 +624,6 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         };
 
     let state = AppState {
-        last_session_id: AtomicU32::default(),
         sessions: RwLock::default(),
         user_configuration: RwLock::new(user_config),
         startup_notifications: match notification_event {
