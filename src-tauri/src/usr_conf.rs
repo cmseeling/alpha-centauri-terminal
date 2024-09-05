@@ -4,7 +4,6 @@ use std::{collections::HashMap, fmt, fs};
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct UserConfigFS {
-    pub window: Window,
     pub shell: Shell,
     pub keymaps: HashMap<String, String>,
 }
@@ -21,7 +20,6 @@ impl fmt::Display for UserConfigFS {
 #[derive(Debug, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UserConfigJS {
-    pub window: Window,
     pub shell: Shell,
     pub keymaps: Vec<KeyCommandMap>,
 }
@@ -52,17 +50,14 @@ pub struct Shell {
     pub bell: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct Window {
-    force_tab_bar: bool,
-}
+// #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+// #[serde(rename_all = "camelCase")]
+// pub struct Window {
+    
+// }
 
 pub fn generate_default_user_config() -> UserConfigFS {
     UserConfigFS {
-        window: Window {
-            force_tab_bar: false,
-        },
         shell: Shell {
             program: String::default(),
             args: Vec::default(),

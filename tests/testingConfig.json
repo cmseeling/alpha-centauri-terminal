@@ -1,7 +1,4 @@
 {
-	"window": {
-		"forceTabBar": true
-	},
 	"shell": {
 		"program": "bash",
 		"args": [],

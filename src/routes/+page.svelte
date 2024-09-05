@@ -1,19 +1,16 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { userConfiguration } from '$lib/store/configurationStore';
+	// import { onMount } from 'svelte';
+	// import { userConfiguration } from '$lib/store/configurationStore';
 	import ScreenManager from '$components/ScreenManager/ScreenManager.svelte';
 
-	let forceTabBar: boolean = false;
-
-	onMount(() => {
-		userConfiguration.subscribe((value) => {
-			if (value.loaded) {
-				forceTabBar = value.window.forceTabBar;
-			}
-		});
-	});
+	// onMount(() => {
+	// 	userConfiguration.subscribe((value) => {
+	// 		if (value.loaded) {
+	// 		}
+	// 	});
+	// });
 </script>
 
 <div class="h-screen">
-	<ScreenManager {forceTabBar} />
+	<ScreenManager />
 </div>

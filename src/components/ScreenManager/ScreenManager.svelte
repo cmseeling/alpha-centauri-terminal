@@ -15,8 +15,6 @@
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
 
-	export let forceTabBar = false;
-
 	let loaded = false;
 	let tabs = [{ id: '1', title: 'Tab 1' }];
 
@@ -131,7 +129,6 @@
 
 {#if loaded && $userConfiguration.loaded}
 	<TabManager
-		{forceTabBar}
 		{tabs}
 		on:newtab={addNewTab}
 		on:closetab={closeTab}

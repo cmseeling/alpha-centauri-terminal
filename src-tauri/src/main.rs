@@ -518,7 +518,6 @@ async fn get_user_config(
 
     let state_config = state.user_configuration.read().await;
     let config = usr_conf::UserConfigJS {
-        window: state_config.window.clone(),
         shell: state_config.shell.clone(),
         keymaps: usr_conf::key_map_to_vector(state_config.keymaps.clone()),
     };
