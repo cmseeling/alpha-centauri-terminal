@@ -74,7 +74,7 @@ fn emit_error_notification<R: Runtime>(
     let notification = NotificationEvent {
         level: 3,
         message: friendly_message,
-        details: details,
+        details,
     };
     app_handle
         .emit_all("notification-event", notification)
@@ -213,7 +213,7 @@ async fn write_to_session(
     app_handle: AppHandle,
 ) -> Result<(), String> {
     #[cfg(debug_assertions)]
-    println!("Received {} - {:#04X?}", &data, &*data.as_bytes());
+    println!("Received {} - {:#04X?}", &data, data.as_bytes());
 
     let msg = "There was an error writing to the shell session.";
 
@@ -560,24 +560,25 @@ async fn get_system_info(app_handle: AppHandle) -> Result<String, String> {
     })
 }
 
-fn setup<'a>(app: &'a mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let mut arg_path: Option<String> = None;
     let mut save_default_config = true;
-    match app.get_cli_matches() {
-        Ok(matches) => {
-            #[cfg(debug_assertions)]
-            println!("Found input args: {:?}", matches);
-            if matches.args.contains_key("configFile") {
-                matches.args.get("configFile").map(|arg| match &arg.value {
-                    serde_json::Value::String(config_file) => {
-                        arg_path = Some(config_file.to_string());
-                        save_default_config = false;
-                    }
-                    _ => {}
-                });
+
+    // get the command line args via the Tauri built-in function
+    if let Ok(matches) = app.get_cli_matches() {
+        #[cfg(debug_assertions)]
+        println!("Found input args: {:?}", matches);
+        // check if the flag is set
+        if matches.args.contains_key("configFile") {
+            // get the flag value
+            if let Some(arg) = matches.args.get("configFile") {
+                // destructure the flag value so it can be used
+                if let serde_json::Value::String(config_file) = &arg.value {
+                    arg_path = Some(config_file.to_string());
+                    save_default_config = false;
+                }
             }
-        }
-        Err(_) => {}
+        };
     }
 
     let config_file_path = arg_path.or_else(|| {

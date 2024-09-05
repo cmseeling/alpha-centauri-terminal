@@ -53,7 +53,7 @@ pub struct Shell {
 // #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 // #[serde(rename_all = "camelCase")]
 // pub struct Window {
-    
+
 // }
 
 pub fn generate_default_user_config() -> UserConfigFS {
