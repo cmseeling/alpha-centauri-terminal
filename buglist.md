@@ -1,5 +1,0 @@
-- [ ] Opening a new tab and switching to another tab - terminal isn't there
-- [x] shift key not working for text entry
-- [ ] Need to focus a terminal on the current tab when pane closes that had focus
-- [ ] Opening more than 2 panes in the same direction does not resize existing panes evenly
-- [ ] orphaned processes when - create new shell session, close tab
