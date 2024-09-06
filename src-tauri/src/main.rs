@@ -372,7 +372,7 @@ async fn end_session(
         .await
         .map_err(|e| {
             emit_error_notification(
-                errfmt!("session.clone().child.lock().await.wait()", e),
+                errfmt!("kill_tree::tokio::kill_tree_with_config().await", e),
                 String::from(msg),
                 format!("{:?}", e),
                 app_handle,
