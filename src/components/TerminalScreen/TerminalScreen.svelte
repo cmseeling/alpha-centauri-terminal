@@ -88,14 +88,6 @@
 		}
 	};
 
-	function toHex(str: string) {
-		var result = '';
-		for (var i = 0; i < str.length; i++) {
-			result += str.charCodeAt(i).toString(16) + ' ';
-		}
-		return result;
-	}
-
 	const xtermJs = (node: HTMLElement) => {
 		console.log('mounting xterm');
 		// console.log(node.parentElement);

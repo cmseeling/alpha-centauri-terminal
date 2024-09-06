@@ -16,6 +16,7 @@
 - [x] 15. Close tab on shell exit (user types 'exit'), end program if no tabs open
 - [x] 16. Investigate why child_killer call throws error
 - [ ] 17. add tests for better coverage and/or ignore some files
+- [ ] 18. Remove session from appstate, clean up Rust resources
 
 ## Bugs
 - [x] Opening a new tab and switching to another tab - terminal isn't there

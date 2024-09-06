@@ -9,6 +9,14 @@ import {
 	TAURI_COMMAND_WAIT_FOR_EXIT
 } from '$lib/constants';
 
+function toHex(str: string) {
+	var result = '';
+	for (var i = 0; i < str.length; i++) {
+		result += `${str.charAt(i)}:0x${str.charCodeAt(i).toString(16)}' '`;
+	}
+	return result;
+}
+
 export const createSession = async ({
 	args,
 	cols,
@@ -74,6 +82,9 @@ export const createSession = async ({
 				console.log('reading');
 				if (onShellOutputHasSubscriber) {
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
+					console.log(shellData);
+					// const hex = toHex(shellData);
+					// console.log(hex);
 					onShellOutputCallback(shellData);
 				}
 
