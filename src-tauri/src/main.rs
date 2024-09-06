@@ -12,7 +12,7 @@ use tauri::{
     AppHandle, Manager, Runtime,
 };
 
-use portable_pty::{native_pty_system, Child, ChildKiller, CommandBuilder, MasterPty, PtySize};
+use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 
 use serde::Serialize;
 
@@ -23,7 +23,6 @@ mod usr_conf;
 struct Session {
     master: Mutex<Box<dyn MasterPty + Send>>,
     child: Mutex<Box<dyn Child + Send + Sync>>,
-    child_killer: Mutex<Box<dyn ChildKiller + Send + Sync>>,
     writer: Mutex<Box<dyn std::io::Write + Send>>,
     reader: Mutex<Box<dyn std::io::Read + Send>>,
 }
@@ -188,19 +187,17 @@ async fn create_session<R: Runtime>(
         e.to_string()
     })?;
     drop(pair.slave);
-    let child_killer = child.clone_killer();
+
     if let Some(handler) = child.process_id() {
-            let session = Arc::new(Session {
+        let session = Arc::new(Session {
             master: Mutex::new(pair.master),
             child: Mutex::new(child),
-            child_killer: Mutex::new(child_killer),
             writer: Mutex::new(writer),
             reader: Mutex::new(reader),
         });
         state.sessions.write().await.insert(handler, session);
         Ok(handler)
-    }
-    else {
+    } else {
         emit_error_notification(
             String::from("child.process_id() returned None"),
             String::from("Could not open terminal"),
@@ -359,7 +356,6 @@ async fn resize(
 #[tauri::command]
 async fn end_session(
     pid: PtyHandler,
-    state: tauri::State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
     #[cfg(debug_assertions)]
@@ -367,34 +363,25 @@ async fn end_session(
 
     let msg = "There was an error ending the shell session.";
 
-    match state.sessions.read().await.get(&pid) {
-        Some(session) => {
-            match session.child_killer.lock().await.kill() {
-                Ok(_) => Ok(()),
-                Err(e) => {
-                    let e_str = e.to_string();
-                    if e_str.contains("The parameter is incorrect.") {
-                        // windows issue killing the child process cleanly
-                        Ok(())
-                    } else {
-                        Err(e.to_string())
-                    }
-                }
-            }
-        }
-        None => {
+    let config = kill_tree::Config {
+        signal: String::from("SIGKILL"),
+        include_target: true,
+    };
+
+    let _outputs = kill_tree::tokio::kill_tree_with_config(pid, &config)
+        .await
+        .map_err(|e| {
             emit_error_notification(
-                format!(
-                    "Error on state.sessions.read().await.get - session with pid={:?} not found",
-                    pid
-                ),
+                errfmt!("session.clone().child.lock().await.wait()", e),
                 String::from(msg),
-                format!("Session not found for pid {:?}", pid),
+                format!("{:?}", e),
                 app_handle,
             );
-            Err(String::from("Unavailable pid"))
-        }
-    }
+            e.to_string()
+        })?;
+    #[cfg(debug_assertions)]
+    println!("outputs: {_outputs:?}");
+    Ok(())
 }
 
 #[tauri::command]

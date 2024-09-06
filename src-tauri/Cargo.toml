@@ -18,6 +18,7 @@ portable-pty = "0.8.1"
 dir = "0.1.2"
 tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 tempdir = "0.3.7"
+kill_tree = { version = "0.2.4", features = ["tokio"] }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
