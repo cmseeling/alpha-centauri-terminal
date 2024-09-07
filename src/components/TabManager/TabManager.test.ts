@@ -6,24 +6,16 @@ import TabManager from './TabManager.svelte';
 
 test('render the tab bar', async () => {
 	const tabs = [{ id: '1', title: 'Tab 1' }];
-	render(TabManager, { forceTabBar: true, tabs });
+	render(TabManager, { tabs });
 	const button = screen.getByTestId('add-new-tab');
 
 	expect(button).toBeInTheDocument();
 });
 
-test('do not render the tab bar', async () => {
-	const tabs = [{ id: '1', title: 'Tab 1' }];
-	render(TabManager, { forceTabBar: false, tabs });
-	const button = screen.queryByTestId('add-new-tab');
-
-	expect(button).not.toBeInTheDocument();
-});
-
 test('new tab button dispatches event', async () => {
 	const tabs = [{ id: '1', title: 'Tab 1' }];
 	const user = userEvent.setup();
-	const { component } = render(TabManager, { forceTabBar: true, tabs });
+	const { component } = render(TabManager, { tabs });
 	const mock = vi.fn(() => {});
 	component.$on('newtab', mock);
 
@@ -40,7 +32,7 @@ test('close button dispatches event', async () => {
 		{ id: '2', title: 'Tab 2' }
 	];
 	const user = userEvent.setup();
-	const { component } = render(TabManager, { forceTabBar: true, tabs });
+	const { component } = render(TabManager, { tabs });
 
 	let eventTabId = '';
 	const mock = vi.fn((event) => {
