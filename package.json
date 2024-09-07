@@ -20,7 +20,8 @@
 	},
 	"license": "GPL-3.0-only",
 	"dependencies": {
-		"@tauri-apps/api": "^1.6.0",
+		"@tauri-apps/api": "^2.0.0-rc.0",
+		"@tauri-apps/plugin-clipboard-manager": "^2.0.0-rc.1",
 		"@xterm/addon-canvas": "^0.7.0",
 		"@xterm/addon-fit": "^0.10.0",
 		"@xterm/addon-webgl": "^0.18.0",
@@ -35,7 +36,7 @@
 		"@sveltejs/adapter-static": "^3.0.4",
 		"@sveltejs/kit": "^2.5.22",
 		"@sveltejs/vite-plugin-svelte": "^3.1.1",
-		"@tauri-apps/cli": "^1",
+		"@tauri-apps/cli": "^2.0.0-rc.0",
 		"@testing-library/jest-dom": "^6.4.8",
 		"@testing-library/svelte": "^5.2.1",
 		"@testing-library/user-event": "^14.5.2",

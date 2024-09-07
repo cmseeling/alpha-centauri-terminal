@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { listen } from '@tauri-apps/api/event';
-	import { invoke } from '@tauri-apps/api';
+	import { invoke } from '@tauri-apps/api/core';
 	import { onMount } from 'svelte';
 	import { addErrorToast, addInfoToast, addWarningToast } from '$lib/components/Toaster.svelte';
 	import { TAURI_COMMAND_GET_STARTUP_NOTIFICATIONS } from './constants';

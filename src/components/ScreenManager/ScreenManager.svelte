@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { appWindow } from '@tauri-apps/api/window';
+	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import { onMount } from 'svelte';
 	import type { Direction, SessionExitStatus } from '$lib/types';
 	import { activeTab } from '$lib/store/tabs';
@@ -14,6 +14,7 @@
 	} from '$lib/utils/paneTreeUtils';
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
+const appWindow = getCurrentWebviewWindow()
 
 	let loaded = false;
 	let tabs = [{ id: '1', title: 'Tab 1' }];

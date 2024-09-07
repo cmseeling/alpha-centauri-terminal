@@ -1,4 +1,4 @@
-import { readText, writeText } from '@tauri-apps/api/clipboard';
+import { readText, writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { get } from 'svelte/store';
 import type { Terminal } from '@xterm/xterm';
 import type { CommandKeyMap, ShellSession } from '$lib/types';

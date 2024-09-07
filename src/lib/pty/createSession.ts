@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api';
+import { invoke } from '@tauri-apps/api/core';
 import type { CreateSessionInputs, SessionExitStatus, ShellSession } from '$lib/types';
 import {
 	TAURI_COMMAND_CREATE_SESSION,
@@ -86,11 +86,6 @@ export const createSession = async ({
 					// const hex = toHex(shellData);
 					// console.log(hex);
 					onShellOutputCallback(shellData);
-				}
-
-				// if we're in a testing environment, don't continuously read
-				if (!window.__TAURI_METADATA__) {
-					break;
 				}
 			}
 		} catch (e: unknown) {
