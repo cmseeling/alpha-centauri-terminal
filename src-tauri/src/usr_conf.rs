@@ -159,7 +159,7 @@ mod tests {
             ("window:new_tab".to_string(), "ctrl+shift+t".to_string()),
         ]);
 
-        let expected_vector: Vec<KeyCommandMap> = Vec::from([
+        let mut expected_vector: Vec<KeyCommandMap> = Vec::from([
             KeyCommandMap {
                 command_name: "edit:interrupt".to_string(),
                 key_combo: "ctrl+c".to_string(),
@@ -169,8 +169,10 @@ mod tests {
                 key_combo: "ctrl+shift+t".to_string(),
             },
         ]);
+        expected_vector.sort_by(|a, b| a.command_name.cmp(&b.command_name));
 
-        let actual_vector = key_map_to_vector(map);
+        let mut actual_vector = key_map_to_vector(map);
+        actual_vector.sort_by(|a, b| a.command_name.cmp(&b.command_name));
 
         assert_eq!(actual_vector, expected_vector);
     }
