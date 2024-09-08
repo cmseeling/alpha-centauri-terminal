@@ -157,6 +157,11 @@
 
 			terminal.attachCustomKeyEventHandler(handleKeyboardEvent);
 
+			terminal.parser.registerOscHandler(7, (oscPayload: string) => {
+				console.log(oscPayload);
+				return false;
+			})
+
 			session.start();
 		}
 	};
