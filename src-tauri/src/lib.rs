@@ -130,7 +130,7 @@ async fn create_session<R: Runtime>(
         if let Ok(s_id) = usize::try_from(ref_session_id) {
             let s = System::new_all();
             if let Some(process) = s.process(Pid::from(s_id)) {
-                println!("{:?}", process.name());
+                #[cfg(debug_assertions)]
                 println!("{:?}", process.cwd());
                 if let Some(cwd_path) = process.cwd() {
                     if std::fs::metadata(cwd_path).is_ok() {
@@ -140,6 +140,7 @@ async fn create_session<R: Runtime>(
                 }
             }
         } else {
+            #[cfg(debug_assertions)]
             println!("Could not convert referring session Id to usize type");
         }
     }
