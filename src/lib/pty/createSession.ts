@@ -22,7 +22,8 @@ export const createSession = async ({
 	cols,
 	rows,
 	currentWorkingDirectory,
-	env
+	env,
+	referringSessionId
 }: CreateSessionInputs) => {
 	let pid: number | null = null;
 	let onShellOutputCallback: (data: string) => void = () => {};
@@ -37,7 +38,8 @@ export const createSession = async ({
 		cols,
 		rows,
 		currentWorkingDirectory,
-		env
+		env,
+		referringSessionId
 	});
 	let sessionActive = true;
 
@@ -79,10 +81,10 @@ export const createSession = async ({
 		// listen to session output
 		try {
 			while (sessionActive && pid !== null) {
-				console.log('reading');
+				// console.log('reading');
 				if (onShellOutputHasSubscriber) {
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
-					console.log(shellData);
+					// console.log(shellData);
 					// const hex = toHex(shellData);
 					// console.log(hex);
 					onShellOutputCallback(shellData);

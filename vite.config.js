@@ -34,9 +34,7 @@ export default defineConfig(async () => ({
 		coverage: {
 			enabled: true,
 			include: ['src/**'],
-			exclude: [
-				'src/routes/**',
-			]
+			exclude: ['src/routes/**']
 		}
 	}
 }));

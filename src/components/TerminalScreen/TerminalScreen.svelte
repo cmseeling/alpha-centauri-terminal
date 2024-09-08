@@ -10,6 +10,7 @@
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
 	import type { SessionExitStatus, ShellSession } from '$lib/types';
 	import type { Readable } from 'svelte/store';
+	import { paneTrees } from '$lib/store/panes';
 
 	export let tabId: string | undefined = undefined;
 	export let nodeId: number | undefined = undefined;
@@ -45,7 +46,7 @@
 	};
 
 	const requestUpdate = () => {
-		console.log('update requested');
+		// console.log('update requested');
 		if (!resizing) {
 			if (update) {
 				frame = requestAnimationFrame(update);
@@ -58,7 +59,7 @@
 		loaded = true;
 
 		const areaUnsub = area.subscribe(($area) => {
-			console.log(`resizing for tab ${tabId} : node ${nodeId}`);
+			// console.log(`resizing for tab ${tabId} : node ${nodeId}`);
 			if ($area !== 0) {
 				requestUpdate();
 			}
@@ -75,7 +76,7 @@
 		});
 
 		return () => {
-			console.log('terminal unmounting');
+			// console.log('terminal unmounting');
 			cancelAnimationFrame(frame);
 			areaUnsub();
 			tabUnsub();
@@ -89,7 +90,7 @@
 	};
 
 	const xtermJs = (node: HTMLElement) => {
-		console.log('mounting xterm');
+		// console.log('mounting xterm');
 		// console.log(node.parentElement);
 		// console.log(node.parentElement?.style.backgroundColor);
 
@@ -112,7 +113,7 @@
 			const webGL = new WebglAddon();
 			terminal.loadAddon(webGL);
 			webGL.onContextLoss(() => {
-				console.log('webGL2 context lost')
+				console.log('webGL2 context lost');
 				webGL.dispose();
 				terminal.loadAddon(new CanvasAddon());
 			});
@@ -122,6 +123,17 @@
 
 		// console.log(session);
 		if (session) {
+			// set the last active session id of the tab to this session's pid
+			if (tabId) {
+				$paneTrees[tabId].lastActiveSessionId = session.pid;
+			}
+
+			terminal.element?.getElementsByTagName('textarea')[0].addEventListener('focus', () => {
+				if (tabId) {
+					$paneTrees[tabId].lastActiveSessionId = session.pid;
+				}
+			});
+
 			session.onShellOutput(async (data: string) => {
 				await terminal.write(data);
 			});

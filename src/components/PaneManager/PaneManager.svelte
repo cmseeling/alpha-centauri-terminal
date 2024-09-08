@@ -26,7 +26,7 @@
 
 	const getDefaultSize = () => {
 		const fraction = 1 / tree.childNodes.length;
-		console.log(fraction);
+		// console.log(fraction);
 		return fraction * 100;
 	}
 

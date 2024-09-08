@@ -14,18 +14,18 @@
 	} from '$lib/utils/paneTreeUtils';
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
-const appWindow = getCurrentWebviewWindow()
+	const appWindow = getCurrentWebviewWindow();
 
 	let loaded = false;
 	let tabs = [{ id: '1', title: 'Tab 1' }];
 
-	const addNewTab = async () => {
+	const addNewTab = async (referringSessionId?: number) => {
 		// console.log('adding new tab');
 
 		const newTabId = '' + new Date().getTime();
 
-		const newTree = await createSingleNode();
-		$paneTrees = { ...$paneTrees, [newTabId]: newTree };
+		const newTree = await createSingleNode({ referringSessionId });
+		$paneTrees = { ...$paneTrees, [newTabId]: { tree: newTree } };
 
 		tabs = [
 			...tabs,
@@ -37,18 +37,23 @@ const appWindow = getCurrentWebviewWindow()
 		$activeTab = tabs[tabs.length - 1].id;
 	};
 
+	const handleNewTabClick = async () => {
+		const referringSessionId = $paneTrees[$activeTab].lastActiveSessionId;
+		await addNewTab(referringSessionId);
+	};
+
 	const closeTab = (event: CustomEvent) => {
 		const tabId = event.detail.tabId;
 		closeTabById(tabId);
 	};
 
 	const closeTabById = (tabId: string) => {
-		console.log('closing tab ' + tabId);
-		terminateSessions($paneTrees[tabId]);
+		// console.log('closing tab ' + tabId);
+		terminateSessions($paneTrees[tabId].tree);
 		let clone = { ...$paneTrees };
 		delete clone[tabId];
 		$paneTrees = clone;
-		console.log($paneTrees);
+		// console.log($paneTrees);
 		tabs = tabs.filter((tab) => {
 			return tab.id !== tabId;
 		});
@@ -68,10 +73,10 @@ const appWindow = getCurrentWebviewWindow()
 	) => {
 		// console.log(`Session process exited with code ${exitCode}`);
 		if (tabId && nodeId) {
-			const newTree = removeLeafNode($paneTrees[tabId], nodeId);
+			const newTree = removeLeafNode($paneTrees[tabId].tree, nodeId);
 			// console.log(newTree);
 			if (newTree) {
-				$paneTrees[tabId] = newTree;
+				$paneTrees[tabId].tree = newTree;
 			} else {
 				closeTabById(tabId);
 			}
@@ -81,12 +86,18 @@ const appWindow = getCurrentWebviewWindow()
 		}
 	};
 
-	const addNewPane = async (tabId: string, nodeId: number, direction: Direction) => {
+	// todo: implement referring session id
+	const addNewPane = async (
+		tabId: string,
+		nodeId: number,
+		direction: Direction,
+		referringSessionId?: number
+	) => {
 		// console.log(`adding new pane: ${direction}`);
-		let tree = $paneTrees[tabId];
+		let tree = $paneTrees[tabId].tree;
 		if (tree) {
-			tree = await addNode(tree, nodeId, direction);
-			$paneTrees = { ...$paneTrees, [tabId]: tree };
+			tree = await addNode(tree, nodeId, direction, referringSessionId);
+			$paneTrees = { ...$paneTrees, [tabId]: { tree } };
 		}
 		// console.log($paneTrees);
 	};
@@ -95,18 +106,25 @@ const appWindow = getCurrentWebviewWindow()
 		// console.log('received ' + command);
 		switch (command) {
 			case 'window:new_tab': {
-				addNewTab();
+				let referringSessionId = undefined;
+				if (tabId !== undefined && nodeId !== undefined) {
+					referringSessionId = $paneTrees[tabId].lastActiveSessionId;
+				}
+				// console.log(referringSessionId);
+				addNewTab(referringSessionId);
 				break;
 			}
 			case 'window:split_right': {
 				if (tabId !== undefined && nodeId !== undefined) {
-					addNewPane(tabId, nodeId, 'horizontal');
+					const referringSessionId = $paneTrees[tabId].lastActiveSessionId;
+					addNewPane(tabId, nodeId, 'horizontal', referringSessionId);
 				}
 				break;
 			}
 			case 'window:split_down': {
 				if (tabId !== undefined && nodeId !== undefined) {
-					addNewPane(tabId, nodeId, 'vertical');
+					const referringSessionId = $paneTrees[tabId].lastActiveSessionId;
+					addNewPane(tabId, nodeId, 'vertical', referringSessionId);
 				}
 				break;
 			}
@@ -116,8 +134,8 @@ const appWindow = getCurrentWebviewWindow()
 	onMount(() => {
 		const unSubUsrCgf = userConfiguration.subscribe(async (config) => {
 			if (config.loaded) {
-				let newTree = await createSingleNode();
-				$paneTrees = { ...$paneTrees, '1': newTree };
+				let newTree = await createSingleNode({});
+				$paneTrees = { ...$paneTrees, '1': { tree: newTree } };
 				loaded = true;
 			}
 		});
@@ -129,15 +147,10 @@ const appWindow = getCurrentWebviewWindow()
 </script>
 
 {#if loaded && $userConfiguration.loaded}
-	<TabManager
-		{tabs}
-		on:newtab={addNewTab}
-		on:closetab={closeTab}
-		let:tabId={screenTabId}
-	>
+	<TabManager {tabs} on:newtab={handleNewTabClick} on:closetab={closeTab} let:tabId={screenTabId}>
 		<PaneManager
 			tabId={screenTabId}
-			tree={$paneTrees[screenTabId]}
+			tree={$paneTrees[screenTabId].tree}
 			disspatchCommand={handleCommandDispatch}
 			onExit={handleSessionExit}
 		/>

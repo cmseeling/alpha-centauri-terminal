@@ -30,17 +30,27 @@ export const findNode = (
 
 export const terminateSessions = (root: TreeNode<PaneData> | undefined | null) => {
 	// console.log(root);
-  if (root) {
-    if(root.data.session && root.data.session.pid) {
-      root.data.session.dispose();
-    }
+	if (root) {
+		if (root.data.session && root.data.session.pid) {
+			root.data.session.dispose();
+		}
 		for (let i = 0; i < root.childNodes.length; i++) {
 			terminateSessions(root.childNodes[i]);
 		}
 	}
 };
 
-export const createSingleNode = async (parentNodeId?: number, session?: ShellSession) => {
+interface CreateSingleNodeArgs {
+	parentNodeId?: number;
+	session?: ShellSession;
+	referringSessionId?: number;
+}
+
+export const createSingleNode = async ({
+	parentNodeId,
+	session,
+	referringSessionId
+}: CreateSingleNodeArgs) => {
 	const newId = get(lastNodeId) + 1;
 
 	const height = writable(0);
@@ -62,7 +72,8 @@ export const createSingleNode = async (parentNodeId?: number, session?: ShellSes
 	if (session === undefined) {
 		const config = get(userConfiguration);
 		const session = await createSession({
-			env: config.shell.env
+			env: config.shell.env,
+			referringSessionId
 		});
 		newNode.data!.session = session;
 	}
@@ -75,10 +86,11 @@ export const createSingleNode = async (parentNodeId?: number, session?: ShellSes
 export const addNode = async (
 	tree: TreeNode<PaneData> | null,
 	startNodeId: number,
-	direction: Direction
+	direction: Direction,
+	referringSessionId?: number
 ): Promise<TreeNode<PaneData>> => {
 	if (tree === null) {
-		const newNode = await createSingleNode();
+		const newNode = await createSingleNode({});
 		return newNode;
 	}
 
@@ -88,14 +100,21 @@ export const addNode = async (
 	} else {
 		// PaneGroup is already going in the same direction so this new node can be added as a sibling
 		if (parentNode && parentNode.data.direction === direction) {
-			parentNode.childNodes.push(await createSingleNode(parentNode.data.nodeId));
+			parentNode.childNodes.push(
+				await createSingleNode({ parentNodeId: parentNode.data.nodeId, referringSessionId })
+			);
 		} else {
 			startNode.data.direction = direction;
 			// pass session to child
 			startNode.childNodes.push(
-				await createSingleNode(startNode.data.nodeId, startNode.data.session)
+				await createSingleNode({
+					parentNodeId: startNode.data.nodeId,
+					session: startNode.data.session
+				})
 			);
-			startNode.childNodes.push(await createSingleNode(startNode.data.nodeId));
+			startNode.childNodes.push(
+				await createSingleNode({ parentNodeId: startNode.data.nodeId, referringSessionId })
+			);
 			startNode.data.session = undefined;
 		}
 	}

@@ -11,13 +11,15 @@ use tauri::{
     async_runtime::{Mutex, RwLock},
     AppHandle, Emitter, Manager, Runtime,
 };
+use tauri_plugin_cli::CliExt;
+
+use sysinfo::{Pid,System};
 
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 
 use serde::Serialize;
 
 use dir::home_dir;
-use tauri_plugin_cli::CliExt;
 
 mod usr_conf;
 
@@ -108,6 +110,7 @@ async fn create_session<R: Runtime>(
     rows: Option<u16>,
     current_working_directory: Option<String>,
     env: Option<HashMap<String, String>>,
+    referring_session_id: Option<u32>,
 
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle<R>,
@@ -123,6 +126,18 @@ async fn create_session<R: Runtime>(
     let cols = cols.unwrap_or(200);
     let rows = rows.unwrap_or(100);
     let env = env.unwrap_or(user_config.shell.env.clone());
+    if let Some(ref_session_id) = referring_session_id {
+        if let Ok(s_id) = usize::try_from(ref_session_id) {
+            let s = System::new_all();
+            if let Some(process) = s.process(Pid::from(s_id)) {
+                println!("{:?}", process.name());
+                println!("{:?}", process.cwd());
+            }
+        }
+        else {
+            println!("Could not convert referring session Id to usize type");
+        }
+    }
 
     let pty_system = native_pty_system();
     // Create PTY, get the writer and reader

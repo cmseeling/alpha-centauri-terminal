@@ -1,4 +1,5 @@
 ## TODO
+
 - [x] 1. Add Svelte tests
 - [x] 2. Add Rust tests
 - [x] 3. Implement copy/paste/other editor commands
@@ -19,6 +20,7 @@
 - [ ] 18. Remove session from appstate, clean up Rust resources
 
 ## Bugs
+
 - [x] Opening a new tab and switching to another tab - terminal isn't there
 - [x] shift key not working for text entry
 - [x] Need to focus a terminal on the current tab when pane closes that had focus

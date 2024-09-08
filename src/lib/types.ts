@@ -49,6 +49,7 @@ export interface CreateSessionInputs {
 	rows?: number;
 	currentWorkingDirectory?: string;
 	env?: { [key: string]: string };
+	referringSessionId?: number;
 }
 
 export interface SessionExitStatus {
@@ -73,6 +74,11 @@ export interface PaneData {
 	area: Readable<number>;
 }
 
+export interface TabTreeInfo {
+	tree: TreeNode<PaneData>;
+	lastActiveSessionId?: number;
+}
+
 export interface TabTreeMap {
-	[tabId: string]: TreeNode<PaneData>;
+	[tabId: string]: TabTreeInfo;
 }
