@@ -13,7 +13,7 @@ use tauri::{
 };
 use tauri_plugin_cli::CliExt;
 
-use sysinfo::{Pid,System};
+use sysinfo::{Pid, System};
 
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 
@@ -74,9 +74,7 @@ fn emit_error_notification<R: Runtime>(
         message: friendly_message,
         details,
     };
-    app_handle
-        .emit("notification-event", notification)
-        .unwrap();
+    app_handle.emit("notification-event", notification).unwrap();
 }
 
 macro_rules! errfmt {
@@ -94,9 +92,7 @@ async fn get_startup_notifications(
     println!("getting startup notifications");
 
     for notification in state.startup_notifications.read().await.iter() {
-        app_handle
-            .emit("notification-event", notification)
-            .unwrap();
+        app_handle.emit("notification-event", notification).unwrap();
     }
     state.startup_notifications.write().await.clear();
 
@@ -111,7 +107,6 @@ async fn create_session<R: Runtime>(
     current_working_directory: Option<String>,
     env: Option<HashMap<String, String>>,
     referring_session_id: Option<u32>,
-
     state: tauri::State<'_, AppState>,
     app_handle: AppHandle<R>,
 ) -> Result<PtyHandler, String> {
@@ -126,15 +121,25 @@ async fn create_session<R: Runtime>(
     let cols = cols.unwrap_or(200);
     let rows = rows.unwrap_or(100);
     let env = env.unwrap_or(user_config.shell.env.clone());
-    if let Some(ref_session_id) = referring_session_id {
+    let mut cwd: Option<String> = None;
+    if let Some(cwd_path) = current_working_directory {
+        if std::fs::metadata(&cwd_path).is_ok() {
+            cwd = Some(cwd_path);
+        }
+    } else if let Some(ref_session_id) = referring_session_id {
         if let Ok(s_id) = usize::try_from(ref_session_id) {
             let s = System::new_all();
             if let Some(process) = s.process(Pid::from(s_id)) {
                 println!("{:?}", process.name());
                 println!("{:?}", process.cwd());
+                if let Some(cwd_path) = process.cwd() {
+                    if std::fs::metadata(cwd_path).is_ok() {
+                        let cwd_string = cwd_path.to_string_lossy().to_string();
+                        cwd = Some(cwd_string);
+                    }
+                }
             }
-        }
-        else {
+        } else {
             println!("Could not convert referring session Id to usize type");
         }
     }
@@ -187,8 +192,8 @@ async fn create_session<R: Runtime>(
     }
 
     cmd.args(args);
-    if let Some(current_working_directory) = current_working_directory {
-        cmd.cwd(OsString::from(current_working_directory));
+    if let Some(cwd_path) = cwd {
+        cmd.cwd(OsString::from(cwd_path));
     }
     for (k, v) in env.iter() {
         cmd.env(OsString::from(k), OsString::from(v));
@@ -370,10 +375,7 @@ async fn resize(
 }
 
 #[tauri::command]
-async fn end_session(
-    pid: PtyHandler,
-    app_handle: AppHandle,
-) -> Result<(), String> {
+async fn end_session(pid: PtyHandler, app_handle: AppHandle) -> Result<(), String> {
     #[cfg(debug_assertions)]
     println!("ending session for pid: {:?}", pid);
 
