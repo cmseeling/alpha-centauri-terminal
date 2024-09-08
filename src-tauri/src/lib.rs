@@ -20,6 +20,7 @@ use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize}
 use serde::Serialize;
 
 use dir::home_dir;
+use url::Url;
 
 mod usr_conf;
 
@@ -99,6 +100,48 @@ async fn get_startup_notifications(
     Ok(())
 }
 
+fn determine_cwd(raw_cwd: Option<String>, referring_session_id: Option<u32>) -> Option<String> {
+    let mut cwd: Option<String> = None;
+    
+    if let Some(cwd_path) = raw_cwd {
+        if let Ok(url) = Url::parse(&cwd_path) {
+            if url.scheme() == "file" {
+               let mut path = url.path().to_string();
+               if cfg!(windows) && path.starts_with('/') {
+                    path = path[1..].to_owned();
+               }
+               #[cfg(debug_assertions)]
+               println!("Parsed path: {:?}", path);
+               if std::fs::metadata(&path).is_ok() {
+                    cwd = Some(path)
+                }
+            }
+        }
+    }
+    if cwd.is_none() {
+        if let Some(ref_session_id) = referring_session_id {
+            if let Ok(s_id) = usize::try_from(ref_session_id) {
+                let s = System::new_all();
+                if let Some(process) = s.process(Pid::from(s_id)) {
+                    #[cfg(debug_assertions)]
+                    println!("Path from process: {:?}", process.cwd());
+                    if let Some(cwd_path) = process.cwd() {
+                        if std::fs::metadata(cwd_path).is_ok() {
+                            let cwd_string = cwd_path.to_string_lossy().to_string();
+                            cwd = Some(cwd_string)
+                        }
+                    }
+                }
+            } else {
+                #[cfg(debug_assertions)]
+                println!("Could not convert referring session Id to usize type");
+            }
+        }
+    }
+
+    cwd
+}
+
 #[tauri::command]
 async fn create_session<R: Runtime>(
     args: Option<Vec<String>>,
@@ -121,29 +164,32 @@ async fn create_session<R: Runtime>(
     let cols = cols.unwrap_or(200);
     let rows = rows.unwrap_or(100);
     let env = env.unwrap_or(user_config.shell.env.clone());
-    let mut cwd: Option<String> = None;
-    if let Some(cwd_path) = current_working_directory {
-        if std::fs::metadata(&cwd_path).is_ok() {
-            cwd = Some(cwd_path);
-        }
-    } else if let Some(ref_session_id) = referring_session_id {
-        if let Ok(s_id) = usize::try_from(ref_session_id) {
-            let s = System::new_all();
-            if let Some(process) = s.process(Pid::from(s_id)) {
-                #[cfg(debug_assertions)]
-                println!("{:?}", process.cwd());
-                if let Some(cwd_path) = process.cwd() {
-                    if std::fs::metadata(cwd_path).is_ok() {
-                        let cwd_string = cwd_path.to_string_lossy().to_string();
-                        cwd = Some(cwd_string);
-                    }
-                }
-            }
-        } else {
-            #[cfg(debug_assertions)]
-            println!("Could not convert referring session Id to usize type");
-        }
-    }
+    // let mut cwd: Option<String> = None;
+    // if let Some(cwd_path) = current_working_directory {
+    //     if std::fs::metadata(&cwd_path).is_ok() {
+    //         cwd = Some(cwd_path);
+    //     }
+    // } else if let Some(ref_session_id) = referring_session_id {
+    //     if let Ok(s_id) = usize::try_from(ref_session_id) {
+    //         let s = System::new_all();
+    //         if let Some(process) = s.process(Pid::from(s_id)) {
+    //             #[cfg(debug_assertions)]
+    //             println!("{:?}", process.cwd());
+    //             if let Some(cwd_path) = process.cwd() {
+    //                 if std::fs::metadata(cwd_path).is_ok() {
+    //                     let cwd_string = cwd_path.to_string_lossy().to_string();
+    //                     cwd = Some(cwd_string);
+    //                 }
+    //             }
+    //         }
+    //     } else {
+    //         #[cfg(debug_assertions)]
+    //         println!("Could not convert referring session Id to usize type");
+    //     }
+    // }
+    let cwd = determine_cwd(current_working_directory, referring_session_id);
+    #[cfg(debug_assertions)]
+    println!("{:?}", cwd);
 
     let pty_system = native_pty_system();
     // Create PTY, get the writer and reader
@@ -665,3 +711,20 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use tempdir::TempDir;
+
+//     #[test]
+//     fn determine_cwd_parses_raw_cwd() {
+//         let test_dir = "usr_home";
+//         let dir = TempDir::new(test_dir).unwrap();
+//         let temp_dir = std::env::temp_dir();
+//         let temp_dir_path = temp_dir.to_string_lossy().to_string();
+//         let raw_cwd = format!("")
+
+//         let actual = determine_cwd(Some(String::from("file://Jupiter/C:\\Users\\Chris")), None);
+//     }
+// }

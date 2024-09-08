@@ -1,6 +1,7 @@
 import { derived, get, writable } from 'svelte/store';
 import type { TreeNode, PaneData, Direction, ShellSession } from '$lib/types';
 import { userConfiguration } from '$lib/store/configurationStore';
+import { sessions } from '$lib/store/sessions';
 import { createSession } from '$lib/pty/createSession';
 
 export const lastNodeId = writable(0);
@@ -31,8 +32,13 @@ export const findNode = (
 export const terminateSessions = (root: TreeNode<PaneData> | undefined | null) => {
 	// console.log(root);
 	if (root) {
-		if (root.data.session && root.data.session.pid) {
-			root.data.session.dispose();
+		if (root.data.sessionId) {
+			const session = sessions.get(root.data.sessionId);
+			if(session) {
+				session.dispose();
+				sessions.delete(root.data.sessionId);
+			}
+			root.data.sessionId = undefined;
 		}
 		for (let i = 0; i < root.childNodes.length; i++) {
 			terminateSessions(root.childNodes[i]);
@@ -42,13 +48,13 @@ export const terminateSessions = (root: TreeNode<PaneData> | undefined | null) =
 
 interface CreateSingleNodeArgs {
 	parentNodeId?: number;
-	session?: ShellSession;
+	sessionId?: number;
 	referringSessionId?: number;
 }
 
 export const createSingleNode = async ({
 	parentNodeId,
-	session,
+	sessionId,
 	referringSessionId
 }: CreateSingleNodeArgs) => {
 	const newId = get(lastNodeId) + 1;
@@ -61,7 +67,7 @@ export const createSingleNode = async ({
 		data: {
 			nodeId: newId,
 			parentNodeId,
-			session,
+			sessionId,
 			height,
 			width,
 			area
@@ -69,13 +75,19 @@ export const createSingleNode = async ({
 		childNodes: []
 	};
 
-	if (session === undefined) {
+	if (sessionId === undefined) {
 		const config = get(userConfiguration);
+		let currentWorkingDirectory = undefined;
+		if(referringSessionId !== undefined) {
+			currentWorkingDirectory = sessions.get(referringSessionId)?.rawCwd;
+		}
 		const session = await createSession({
 			env: config.shell.env,
+			currentWorkingDirectory,
 			referringSessionId
 		});
-		newNode.data!.session = session;
+		sessions.set(session.pid, session);
+		newNode.data!.sessionId = session.pid;
 	}
 
 	lastNodeId.set(newId);
@@ -109,13 +121,13 @@ export const addNode = async (
 			startNode.childNodes.push(
 				await createSingleNode({
 					parentNodeId: startNode.data.nodeId,
-					session: startNode.data.session
+					sessionId: startNode.data.sessionId
 				})
 			);
 			startNode.childNodes.push(
 				await createSingleNode({ parentNodeId: startNode.data.nodeId, referringSessionId })
 			);
-			startNode.data.session = undefined;
+			startNode.data.sessionId = undefined;
 		}
 	}
 
@@ -132,7 +144,14 @@ export const removeLeafNode = (
 			if (nodeToDelete) {
 				// check if this node is a leaf
 				if (nodeToDelete.childNodes.length === 0) {
-					nodeToDelete.data.session?.dispose();
+					if(nodeToDelete.data.sessionId !== undefined) {
+						const session = sessions.get(nodeToDelete.data.sessionId);
+						if(session) {
+							session.dispose();
+							sessions.delete(nodeToDelete.data.sessionId);
+						}
+						nodeToDelete.data.sessionId = undefined;
+					}
 					parentNode.childNodes = parentNode.childNodes.filter((child) => {
 						return child.data.nodeId !== nodeId;
 					});
@@ -140,7 +159,7 @@ export const removeLeafNode = (
 					// parent could become a leaf or it could remain a parent with new children
 					if (parentNode.childNodes.length === 1) {
 						parentNode.data.direction = parentNode.childNodes[0].data.direction;
-						parentNode.data.session = parentNode.childNodes[0].data.session;
+						parentNode.data.sessionId = parentNode.childNodes[0].data.sessionId;
 						parentNode.childNodes = parentNode.childNodes[0].childNodes;
 					}
 				}
@@ -149,7 +168,14 @@ export const removeLeafNode = (
 			if (nodeToDelete) {
 				// check if this node is a leaf
 				if (nodeToDelete.childNodes.length === 0) {
-					nodeToDelete.data.session?.dispose();
+					if(nodeToDelete.data.sessionId !== undefined) {
+						const session = sessions.get(nodeToDelete.data.sessionId);
+						if(session) {
+							session.dispose();
+							sessions.delete(nodeToDelete.data.sessionId);
+						}
+						nodeToDelete.data.sessionId = undefined;
+					}
 					tree = null;
 				}
 			}

@@ -34,6 +34,7 @@ export interface Tab {
 
 export interface ShellSession {
 	pid: number;
+	rawCwd: string;
 	resize: (cols: number, rows: number) => void;
 	write: (data: string) => void;
 	kill: () => void;
@@ -68,7 +69,7 @@ export interface PaneData {
 	nodeId: number;
 	parentNodeId?: number;
 	direction?: Direction;
-	session?: ShellSession;
+	sessionId?: number;
 	height: Writable<number>;
 	width: Writable<number>;
 	area: Readable<number>;

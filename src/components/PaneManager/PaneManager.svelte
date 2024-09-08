@@ -44,7 +44,7 @@
 		<TerminalScreen
 			{tabId}
 			nodeId={tree.data.nodeId}
-			session={tree.data.session}
+			sessionId={tree.data.sessionId}
 			height={tree.data.height}
 			width={tree.data.width}
 			area={tree.data.area}

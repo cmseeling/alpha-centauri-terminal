@@ -23,6 +23,7 @@ tauri-plugin-clipboard-manager = "2.1.0-beta.7"
 tauri-plugin-shell = "2.0.0-rc"
 tauri-plugin-cli = "2.0.0-rc"
 sysinfo = "0.31.4"
+url = "2.5.2"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

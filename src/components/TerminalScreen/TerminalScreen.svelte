@@ -8,13 +8,14 @@
 	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
 	import { activeTab } from '$lib/store/tabs';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
-	import type { SessionExitStatus, ShellSession } from '$lib/types';
+	import type { SessionExitStatus } from '$lib/types';
 	import type { Readable } from 'svelte/store';
 	import { paneTrees } from '$lib/store/panes';
+	import { sessions } from '$lib/store/sessions';
 
 	export let tabId: string | undefined = undefined;
 	export let nodeId: number | undefined = undefined;
-	export let session: ShellSession | undefined;
+	export let sessionId: number | undefined;
 	export let height: Readable<number>;
 	export let width: Readable<number>;
 	export let area: Readable<number>;
@@ -36,6 +37,7 @@
 	let frame: number;
 	let fitAddon = new FitAddon();
 	let terminal: Terminal;
+	let session = sessions.get(sessionId ?? -1);
 
 	let update = () => {
 		resizing = false;
@@ -158,7 +160,8 @@
 			terminal.attachCustomKeyEventHandler(handleKeyboardEvent);
 
 			terminal.parser.registerOscHandler(7, (oscPayload: string) => {
-				console.log(oscPayload);
+				// console.log(oscPayload);
+				session.rawCwd = oscPayload;
 				return false;
 			})
 

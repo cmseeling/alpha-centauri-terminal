@@ -26,6 +26,7 @@ export const createSession = async ({
 	referringSessionId
 }: CreateSessionInputs) => {
 	let pid: number | null = null;
+	let rawCwd = '';
 	let onShellOutputCallback: (data: string) => void = () => {};
 	let onShellOutputHasSubscriber = false;
 	let onShellExitCallback: (exitStatus: SessionExitStatus) => void = () => {};
@@ -121,6 +122,7 @@ export const createSession = async ({
 
 	const returnValue: ShellSession = {
 		pid,
+		rawCwd,
 		resize,
 		write,
 		kill,
