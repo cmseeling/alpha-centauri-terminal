@@ -338,32 +338,6 @@ async fn read_from_session(
     Ok(String::from_utf8_lossy(&buf[..n]).to_string())
 }
 
-// #[tauri::command]
-// async fn get_current_directory(pid: PtyHandler, state: tauri::State<'_, AppState>, app_handle: AppHandle,) -> Result<String, String> {
-//     match state.sessions.read().await.get(&pid) {
-//         Some(session) => {
-//             let child = session
-//                 .child
-//                 .lock()
-//                 .await;
-//             child.
-//             Ok(String::from("ok"))
-//         },
-//         None => {
-//             emit_error_notification(
-//                 format!(
-//                     "Error on state.sessions.read().await.get - session with pid={:?} not found",
-//                     pid
-//                 ),
-//                 String::from("There was an error writing to the shell session."),
-//                 format!("Session not found for pid {:?}", pid),
-//                 app_handle,
-//             );
-//             Err(String::from("Unavailable pid"))
-//         }
-//     }
-// }
-
 #[tauri::command]
 async fn resize(
     pid: PtyHandler,
