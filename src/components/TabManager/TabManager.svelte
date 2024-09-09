@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { melt } from '@melt-ui/svelte';
 	import type { Tab } from '$lib/types';
-	import { content, list, root, trigger } from '$lib/store/tabs';
+	import { content, list, root, trigger } from '$lib/store';
 	import Add from 'virtual:icons/mdi/add';
 	import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 

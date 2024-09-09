@@ -1,17 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { Readable } from 'svelte/store';
 	import '@xterm/xterm/css/xterm.css';
 	import { Terminal } from '@xterm/xterm';
 	import { FitAddon } from '@xterm/addon-fit';
 	import { WebglAddon } from '@xterm/addon-webgl';
 	import { CanvasAddon } from '@xterm/addon-canvas';
-	import { isWebGL2Enabled, userConfiguration } from '$lib/store/configurationStore';
-	import { activeTab } from '$lib/store/tabs';
-	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
 	import type { SessionExitStatus } from '$lib/types';
-	import type { Readable } from 'svelte/store';
-	import { paneTrees } from '$lib/store/panes';
-	import { sessions } from '$lib/store/sessions';
+	import { activeTab, isWebGL2Enabled, sessions, tabTrees, userConfiguration } from '$lib/store';
+	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
 
 	export let tabId: string | undefined = undefined;
 	export let nodeId: number | undefined = undefined;
@@ -127,12 +124,12 @@
 		if (session) {
 			// set the last active session id of the tab to this session's pid
 			if (tabId) {
-				$paneTrees[tabId].lastActiveSessionId = session.pid;
+				$tabTrees[tabId].lastActiveSessionId = session.pid;
 			}
 
 			terminal.element?.getElementsByTagName('textarea')[0].addEventListener('focus', () => {
 				if (tabId) {
-					$paneTrees[tabId].lastActiveSessionId = session.pid;
+					$tabTrees[tabId].lastActiveSessionId = session.pid;
 				}
 			});
 

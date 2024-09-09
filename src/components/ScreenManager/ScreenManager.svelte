@@ -2,9 +2,7 @@
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import { onMount } from 'svelte';
 	import type { Direction, SessionExitStatus } from '$lib/types';
-	import { activeTab } from '$lib/store/tabs';
-	import { paneTrees } from '$lib/store/panes';
-	import { userConfiguration } from '$lib/store/configurationStore';
+	import { activeTab, tabTrees, userConfiguration } from '$lib/store';
 	import { addWarningToast } from '$lib/components/Toaster.svelte';
 	import {
 		addNode,
@@ -14,6 +12,7 @@
 	} from '$lib/utils/paneTreeUtils';
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
+	
 	const appWindow = getCurrentWebviewWindow();
 
 	let loaded = false;
@@ -25,7 +24,7 @@
 		const newTabId = '' + new Date().getTime();
 
 		const newTree = await createSingleNode({ referringSessionId });
-		$paneTrees = { ...$paneTrees, [newTabId]: { tree: newTree } };
+		$tabTrees = { ...$tabTrees, [newTabId]: { tree: newTree } };
 
 		tabs = [
 			...tabs,
@@ -38,7 +37,7 @@
 	};
 
 	const handleNewTabClick = async () => {
-		const referringSessionId = $paneTrees[$activeTab].lastActiveSessionId;
+		const referringSessionId = $tabTrees[$activeTab].lastActiveSessionId;
 		await addNewTab(referringSessionId);
 	};
 
@@ -48,12 +47,12 @@
 	};
 
 	const closeTabById = (tabId: string) => {
-		// console.log('closing tab ' + tabId);
-		terminateSessions($paneTrees[tabId].tree);
-		let clone = { ...$paneTrees };
+		console.log('closing tab ' + tabId);
+		terminateSessions($tabTrees[tabId].tree);
+		let clone = { ...$tabTrees };
 		delete clone[tabId];
-		$paneTrees = clone;
-		// console.log($paneTrees);
+		$tabTrees = clone;
+		// console.log($tabTrees);
 		tabs = tabs.filter((tab) => {
 			return tab.id !== tabId;
 		});
@@ -73,12 +72,14 @@
 	) => {
 		// console.log(`Session process exited with code ${exitCode}`);
 		if (tabId && nodeId) {
-			const newTree = removeLeafNode($paneTrees[tabId].tree, nodeId);
-			// console.log(newTree);
-			if (newTree) {
-				$paneTrees[tabId].tree = newTree;
-			} else {
-				closeTabById(tabId);
+			if($tabTrees[tabId]) {
+				const newTree = removeLeafNode($tabTrees[tabId].tree, nodeId);
+				// console.log(newTree);
+				if (newTree) {
+					$tabTrees[tabId].tree = newTree;
+				} else {
+					closeTabById(tabId);
+				}
 			}
 		}
 		if (!exitStatus.success) {
@@ -94,12 +95,12 @@
 		referringSessionId?: number
 	) => {
 		// console.log(`adding new pane: ${direction}`);
-		let tree = $paneTrees[tabId].tree;
+		let tree = $tabTrees[tabId].tree;
 		if (tree) {
 			tree = await addNode(tree, nodeId, direction, referringSessionId);
-			$paneTrees = { ...$paneTrees, [tabId]: { tree } };
+			$tabTrees = { ...$tabTrees, [tabId]: { tree } };
 		}
-		// console.log($paneTrees);
+		// console.log($tabTrees);
 	};
 
 	const handleCommandDispatch = (command: string, tabId?: string, nodeId?: number) => {
@@ -108,7 +109,7 @@
 			case 'window:new_tab': {
 				let referringSessionId = undefined;
 				if (tabId !== undefined && nodeId !== undefined) {
-					referringSessionId = $paneTrees[tabId].lastActiveSessionId;
+					referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 				}
 				// console.log(referringSessionId);
 				addNewTab(referringSessionId);
@@ -116,14 +117,14 @@
 			}
 			case 'window:split_right': {
 				if (tabId !== undefined && nodeId !== undefined) {
-					const referringSessionId = $paneTrees[tabId].lastActiveSessionId;
+					const referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 					addNewPane(tabId, nodeId, 'horizontal', referringSessionId);
 				}
 				break;
 			}
 			case 'window:split_down': {
 				if (tabId !== undefined && nodeId !== undefined) {
-					const referringSessionId = $paneTrees[tabId].lastActiveSessionId;
+					const referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 					addNewPane(tabId, nodeId, 'vertical', referringSessionId);
 				}
 				break;
@@ -135,7 +136,7 @@
 		const unSubUsrCgf = userConfiguration.subscribe(async (config) => {
 			if (config.loaded) {
 				let newTree = await createSingleNode({});
-				$paneTrees = { ...$paneTrees, '1': { tree: newTree } };
+				$tabTrees = { ...$tabTrees, '1': { tree: newTree } };
 				loaded = true;
 			}
 		});
@@ -150,7 +151,7 @@
 	<TabManager {tabs} on:newtab={handleNewTabClick} on:closetab={closeTab} let:tabId={screenTabId}>
 		<PaneManager
 			tabId={screenTabId}
-			tree={$paneTrees[screenTabId].tree}
+			tree={$tabTrees[screenTabId].tree}
 			disspatchCommand={handleCommandDispatch}
 			onExit={handleSessionExit}
 		/>

@@ -1,5 +1,6 @@
 import { derived, writable, type Writable } from 'svelte/store';
-import type { SystemInfo, UserConfiguration } from '$lib/types';
+import { createTabs } from '@melt-ui/svelte';
+import type { SystemInfo, TabTreeMap, UserConfiguration } from '$lib/types';
 
 export const isWebGL2Enabled = writable(false);
 
@@ -18,3 +19,12 @@ export const appConfiguration = derived(
 		};
 	}
 );
+
+export const {
+	elements: { root, list, content, trigger },
+	states: { value: activeTab }
+} = createTabs({ defaultValue: '1' });
+
+export const tabTrees = writable({} as TabTreeMap);
+
+export { sessions } from './sessions';

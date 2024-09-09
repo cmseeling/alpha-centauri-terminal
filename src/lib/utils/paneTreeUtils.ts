@@ -1,8 +1,6 @@
 import { derived, get, writable } from 'svelte/store';
-import type { TreeNode, PaneData, Direction, ShellSession } from '$lib/types';
-import { userConfiguration } from '$lib/store/configurationStore';
-import { sessions } from '$lib/store/sessions';
-import { createSession } from '$lib/pty/createSession';
+import type { TreeNode, PaneData, Direction } from '$lib/types';
+import { sessions, userConfiguration } from '$lib/store';
 
 export const lastNodeId = writable(0);
 
@@ -33,11 +31,7 @@ export const terminateSessions = (root: TreeNode<PaneData> | undefined | null) =
 	// console.log(root);
 	if (root) {
 		if (root.data.sessionId) {
-			const session = sessions.get(root.data.sessionId);
-			if(session) {
-				session.dispose();
-				sessions.delete(root.data.sessionId);
-			}
+			sessions.remove(root.data.sessionId);
 			root.data.sessionId = undefined;
 		}
 		for (let i = 0; i < root.childNodes.length; i++) {
@@ -81,12 +75,11 @@ export const createSingleNode = async ({
 		if(referringSessionId !== undefined) {
 			currentWorkingDirectory = sessions.get(referringSessionId)?.rawCwd;
 		}
-		const session = await createSession({
+		const session = await sessions.createSession({
 			env: config.shell.env,
 			currentWorkingDirectory,
 			referringSessionId
 		});
-		sessions.set(session.pid, session);
 		newNode.data!.sessionId = session.pid;
 	}
 
@@ -145,11 +138,7 @@ export const removeLeafNode = (
 				// check if this node is a leaf
 				if (nodeToDelete.childNodes.length === 0) {
 					if(nodeToDelete.data.sessionId !== undefined) {
-						const session = sessions.get(nodeToDelete.data.sessionId);
-						if(session) {
-							session.dispose();
-							sessions.delete(nodeToDelete.data.sessionId);
-						}
+						sessions.remove(nodeToDelete.data.sessionId);
 						nodeToDelete.data.sessionId = undefined;
 					}
 					parentNode.childNodes = parentNode.childNodes.filter((child) => {
@@ -169,11 +158,7 @@ export const removeLeafNode = (
 				// check if this node is a leaf
 				if (nodeToDelete.childNodes.length === 0) {
 					if(nodeToDelete.data.sessionId !== undefined) {
-						const session = sessions.get(nodeToDelete.data.sessionId);
-						if(session) {
-							session.dispose();
-							sessions.delete(nodeToDelete.data.sessionId);
-						}
+						sessions.remove(nodeToDelete.data.sessionId);
 						nodeToDelete.data.sessionId = undefined;
 					}
 					tree = null;
