@@ -17,7 +17,7 @@ use sysinfo::{Pid, System};
 
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use dir::home_dir;
 use url::Url;
@@ -29,6 +29,12 @@ struct Session {
     child: Mutex<Box<dyn Child + Send + Sync>>,
     writer: Mutex<Box<dyn std::io::Write + Send>>,
     reader: Mutex<Box<dyn std::io::Read + Send>>,
+}
+
+#[derive(Deserialize)]
+struct SessionSize {
+    cols: u16,
+    rows: u16,
 }
 
 #[derive(Serialize)]
@@ -106,16 +112,15 @@ fn determine_cwd(raw_cwd: Option<String>, referring_session_id: Option<u32>) -> 
     if let Some(cwd_path) = raw_cwd {
         if let Ok(url) = Url::parse(&cwd_path) {
             if url.scheme() == "file" {
-               let mut path = url.path().to_string();
-               if cfg!(windows) && path.starts_with('/') {
+                let mut path = url.path().to_string();
+                if cfg!(windows) && path.starts_with('/') {
                     path = path[1..].to_owned();
-               }
-               #[cfg(debug_assertions)]
-               println!("Parsed path: {:?}", path);
-               if std::fs::metadata(&path).is_ok() {
-                    cwd = Some(path)
                 }
-                else {
+                #[cfg(debug_assertions)]
+                println!("Parsed path: {:?}", path);
+                if std::fs::metadata(&path).is_ok() {
+                    cwd = Some(path)
+                } else {
                     #[cfg(debug_assertions)]
                     println!("Parsed path does not exist on this machine");
                 }
@@ -149,8 +154,7 @@ fn determine_cwd(raw_cwd: Option<String>, referring_session_id: Option<u32>) -> 
 #[tauri::command]
 async fn create_session<R: Runtime>(
     args: Option<Vec<String>>,
-    cols: Option<u16>,
-    rows: Option<u16>,
+    session_size: Option<SessionSize>,
     current_working_directory: Option<String>,
     env: Option<HashMap<String, String>>,
     referring_session_id: Option<u32>,
@@ -165,8 +169,12 @@ async fn create_session<R: Runtime>(
     let user_config = state.user_configuration.read().await;
 
     let args = args.unwrap_or(user_config.shell.args.clone());
-    let cols = cols.unwrap_or(200);
-    let rows = rows.unwrap_or(100);
+    let mut cols: u16 = 200;
+    let mut rows: u16 = 100;
+    if let Some(size) = session_size {
+        cols = size.cols;
+        rows = size.rows;
+    }
     let env = env.unwrap_or(user_config.shell.env.clone());
 
     let cwd = determine_cwd(current_working_directory, referring_session_id);
@@ -709,7 +717,7 @@ mod tests {
 
         let actual = match determine_cwd(Some(raw_cwd), None) {
             Some(cwd) => cwd,
-            None => String::new()
+            None => String::new(),
         };
 
         assert_eq!(actual, expected);
