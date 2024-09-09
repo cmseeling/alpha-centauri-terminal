@@ -5,7 +5,7 @@ import { randomFillSync } from 'crypto';
 import { mockIPC } from '@tauri-apps/api/mocks';
 
 import { TAURI_COMMAND_GET_SYSTEM_INFO, TAURI_COMMAND_GET_USER_CONFIG } from '$lib/constants';
-import { isWebGL2Enabled, systemInfo, userConfiguration } from '$lib/store/configurationStore';
+import { isWebGL2Enabled, systemInfo, userConfiguration } from '$lib/store';
 
 import ConfigLoader from './ConfigLoader.svelte';
 

@@ -25,6 +25,5 @@ export const {
 	states: { value: activeTab }
 } = createTabs({ defaultValue: '1' });
 
-export const tabTrees = writable({} as TabTreeMap);
-
 export { sessions } from './sessions';
+export { tabTrees } from './tabTrees';
