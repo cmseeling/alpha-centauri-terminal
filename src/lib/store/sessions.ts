@@ -11,13 +11,13 @@ import {
 
 export const _sessions = new Map<number, ShellSession>();
 
-// function toHex(str: string) {
-// 	var result = '';
-// 	for (var i = 0; i < str.length; i++) {
-// 		result += `${str.charAt(i)}:0x${str.charCodeAt(i).toString(16)}' '`;
-// 	}
-// 	return result;
-// }
+function toHex(str: string) {
+	let result = '';
+	for (let i = 0; i < str.length; i++) {
+		result += `${str.charAt(i)}:0x${str.charCodeAt(i).toString(16)}' '`;
+	}
+	return result;
+}
 
 const createSession = async ({
 	args,
@@ -84,7 +84,7 @@ const createSession = async ({
 		// listen to session output
 		try {
 			while (sessionActive && pid !== null) {
-				// console.log('reading');
+				console.log('reading');
 				if (onShellOutputHasSubscriber) {
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
 					// console.log(shellData);
@@ -108,10 +108,12 @@ const createSession = async ({
 		const exitCode = await invoke<number>(TAURI_COMMAND_WAIT_FOR_EXIT, { pid });
 		// console.log(exitCode);
 		shellExited = true;
-		onShellExitCallback({
+		if(onShellExitHasSubscriber) {
+			onShellExitCallback({
 			exitCode,
 			success: exitCode === 0 || (exitCode === 1 && killCommandSent)
 		});
+		}
 	};
 
 	const dispose = () => {

@@ -119,6 +119,7 @@
 				if (tabId !== undefined && nodeId !== undefined) {
 					const referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 					addNewPane(tabId, nodeId, 'horizontal', referringSessionId);
+					console.log($tabTrees)
 				}
 				break;
 			}

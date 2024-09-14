@@ -44,12 +44,14 @@ interface CreateSingleNodeArgs {
 	parentNodeId?: number;
 	sessionId?: number;
 	referringSessionId?: number;
+	createNewSession?: boolean;
 }
 
 export const createSingleNode = async ({
 	parentNodeId,
 	sessionId,
-	referringSessionId
+	referringSessionId,
+	createNewSession = true
 }: CreateSingleNodeArgs) => {
 	const newId = get(lastNodeId) + 1;
 
@@ -69,7 +71,7 @@ export const createSingleNode = async ({
 		childNodes: []
 	};
 
-	if (sessionId === undefined) {
+	if (sessionId === undefined && createNewSession) {
 		const config = get(userConfiguration);
 		let currentWorkingDirectory = undefined;
 		if(referringSessionId !== undefined) {
@@ -109,20 +111,40 @@ export const addNode = async (
 				await createSingleNode({ parentNodeId: parentNode.data.nodeId, referringSessionId })
 			);
 		} else {
-			startNode.data.direction = direction;
-			// pass session to child
-			startNode.childNodes.push(
-				await createSingleNode({
-					parentNodeId: startNode.data.nodeId,
-					sessionId: startNode.data.sessionId
-				})
-			);
-			startNode.childNodes.push(
-				await createSingleNode({ parentNodeId: startNode.data.nodeId, referringSessionId })
-			);
-			startNode.data.sessionId = undefined;
+			const newParent = await createSingleNode({
+				parentNodeId: startNode.data.parentNodeId,
+				createNewSession: false
+			});
+			newParent.data.direction = direction;
+			startNode.data.parentNodeId = newParent.data.nodeId;
+			newParent.childNodes.push(startNode);
+			newParent.childNodes.push(
+				await createSingleNode({ parentNodeId: newParent.data.nodeId, referringSessionId })
+			)
+			if(parentNode) {
+				const index = parentNode.childNodes.indexOf(startNode);
+				parentNode.childNodes.splice(index, 1, newParent);
+			}
+			else {
+				tree = newParent
+			}
+			// startNode.data.direction = direction;
+			// // pass session to child
+			// startNode.childNodes.push(
+			// 	await createSingleNode({
+			// 		parentNodeId: startNode.data.nodeId,
+			// 		sessionId: startNode.data.sessionId
+			// 	})
+			// );
+			// startNode.childNodes.push(
+			// 	await createSingleNode({ parentNodeId: startNode.data.nodeId, referringSessionId })
+			// );
+			// startNode.data.sessionId = undefined;
+			
 		}
 	}
+
+	console.log(tree);
 
 	return tree;
 };

@@ -55,6 +55,7 @@
 	};
 
 	onMount(() => {
+		console.log(`onMount for ${tabId}:${nodeId}`);
 		loaded = true;
 
 		const areaUnsub = area.subscribe(($area) => {
@@ -89,7 +90,7 @@
 	};
 
 	const xtermJs = (node: HTMLElement) => {
-		// console.log('mounting xterm');
+		console.log(`mounting xterm for ${tabId}:${nodeId}`);
 		// console.log(node.parentElement);
 		// console.log(node.parentElement?.style.backgroundColor);
 
