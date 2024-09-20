@@ -7,6 +7,7 @@
 	import {
 		addNode,
 		createSingleNode,
+		initializeTree,
 		removeLeafNode,
 		terminateSessions
 	} from '$lib/utils/paneTreeUtils';
@@ -47,7 +48,7 @@
 	};
 
 	const closeTabById = (tabId: string) => {
-		console.log('closing tab ' + tabId);
+		// console.log('closing tab ' + tabId);
 		terminateSessions($tabTrees[tabId].tree);
 		let clone = { ...$tabTrees };
 		delete clone[tabId];
@@ -119,7 +120,7 @@
 				if (tabId !== undefined && nodeId !== undefined) {
 					const referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 					addNewPane(tabId, nodeId, 'horizontal', referringSessionId);
-					console.log($tabTrees)
+					// console.log($tabTrees)
 				}
 				break;
 			}
@@ -136,7 +137,7 @@
 	onMount(() => {
 		const unSubUsrCgf = userConfiguration.subscribe(async (config) => {
 			if (config.loaded) {
-				let newTree = await createSingleNode({});
+				let newTree = await initializeTree();
 				$tabTrees = { ...$tabTrees, '1': { tree: newTree } };
 				loaded = true;
 			}

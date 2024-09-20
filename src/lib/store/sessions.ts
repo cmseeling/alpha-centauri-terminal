@@ -14,7 +14,7 @@ export const _sessions = new Map<number, ShellSession>();
 function toHex(str: string) {
 	let result = '';
 	for (let i = 0; i < str.length; i++) {
-		result += `${str.charAt(i)}:0x${str.charCodeAt(i).toString(16)}' '`;
+		result += `\\0x${str.charCodeAt(i).toString(16)}`;
 	}
 	return result;
 }
@@ -84,12 +84,12 @@ const createSession = async ({
 		// listen to session output
 		try {
 			while (sessionActive && pid !== null) {
-				console.log('reading');
+				// console.log('reading');
 				if (onShellOutputHasSubscriber) {
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
-					// console.log(shellData);
-					// const hex = toHex(shellData);
-					// console.log(hex);
+					console.log(shellData);
+					const hex = toHex(shellData);
+					console.log(hex);
 					onShellOutputCallback(shellData);
 				}
 			}

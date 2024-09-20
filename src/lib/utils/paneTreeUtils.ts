@@ -40,6 +40,12 @@ export const terminateSessions = (root: TreeNode<PaneData> | undefined | null) =
 	}
 };
 
+export const initializeTree = async() => {
+	const root = await createSingleNode({ createNewSession: false });
+	root.childNodes.push(await createSingleNode({ parentNodeId: root.data.nodeId }));
+	return root;
+}
+
 interface CreateSingleNodeArgs {
 	parentNodeId?: number;
 	sessionId?: number;
@@ -97,8 +103,7 @@ export const addNode = async (
 	referringSessionId?: number
 ): Promise<TreeNode<PaneData>> => {
 	if (tree === null) {
-		const newNode = await createSingleNode({});
-		return newNode;
+		return await initializeTree();
 	}
 
 	const [parentNode, startNode] = findNode(tree, startNodeId);
@@ -106,10 +111,12 @@ export const addNode = async (
 		return tree;
 	} else {
 		// PaneGroup is already going in the same direction so this new node can be added as a sibling
-		if (parentNode && parentNode.data.direction === direction) {
+		// alternatively, the direction was arbitrarily set
+		if (parentNode && (parentNode.data.direction === direction || parentNode.childNodes.length === 1)) {
 			parentNode.childNodes.push(
 				await createSingleNode({ parentNodeId: parentNode.data.nodeId, referringSessionId })
 			);
+			parentNode.data.direction = direction;
 		} else {
 			const newParent = await createSingleNode({
 				parentNodeId: startNode.data.parentNodeId,
@@ -117,10 +124,13 @@ export const addNode = async (
 			});
 			newParent.data.direction = direction;
 			startNode.data.parentNodeId = newParent.data.nodeId;
+			// attach original
 			newParent.childNodes.push(startNode);
+			// create new
 			newParent.childNodes.push(
 				await createSingleNode({ parentNodeId: newParent.data.nodeId, referringSessionId })
 			)
+			// remove reference to original from parent
 			if(parentNode) {
 				const index = parentNode.childNodes.indexOf(startNode);
 				parentNode.childNodes.splice(index, 1, newParent);
@@ -144,7 +154,7 @@ export const addNode = async (
 		}
 	}
 
-	console.log(tree);
+	// console.log(tree);
 
 	return tree;
 };

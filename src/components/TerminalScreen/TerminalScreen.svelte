@@ -27,7 +27,7 @@
 		nodeId: number | undefined
 	) => void;
 
-	// console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${session?.pid}`);
+	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${sessionId} | area: ${$area}`);
 
 	let loaded = false;
 	let resizing = false;
@@ -55,7 +55,7 @@
 	};
 
 	onMount(() => {
-		console.log(`onMount for ${tabId}:${nodeId}`);
+		// console.log(`onMount for ${tabId}:${nodeId}`);
 		loaded = true;
 
 		const areaUnsub = area.subscribe(($area) => {
@@ -76,7 +76,7 @@
 		});
 
 		return () => {
-			// console.log('terminal unmounting');
+			// console.log(`terminal unmounting for ${tabId}:${nodeId}`);
 			cancelAnimationFrame(frame);
 			areaUnsub();
 			tabUnsub();
@@ -90,7 +90,7 @@
 	};
 
 	const xtermJs = (node: HTMLElement) => {
-		console.log(`mounting xterm for ${tabId}:${nodeId}`);
+		// console.log(`mounting xterm for ${tabId}:${nodeId}`);
 		// console.log(node.parentElement);
 		// console.log(node.parentElement?.style.backgroundColor);
 
@@ -170,9 +170,9 @@
 
 {#if loaded && $userConfiguration.loaded}
 	<div
-		class="terminal-screen px-3"
+		class="terminal-screen px-3 h-full w-full"
 		use:xtermJs
-		style="--termHeight:{$height}px; --termWidth:{$width}px;"
+		
 	/>
 {/if}
 
