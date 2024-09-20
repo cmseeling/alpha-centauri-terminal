@@ -37,9 +37,8 @@
 
 	// $: height = tree.data.height;
 	// $: width = tree.data.width;
-	$: heightStores = tree.childNodes.map((node) => node.data.height);
-	$: widthStores = tree.childNodes.map((node) => node.data.width);
-	let screenRefs = [];
+	// $: heightStores = tree.childNodes.map((node) => node.data.height);
+	// $: widthStores = tree.childNodes.map((node) => node.data.width);
 </script>
 
 <!-- {#if tree.childNodes.length === 0}
@@ -114,22 +113,13 @@
 	{#each tree.childNodes as node, i (node.data.nodeId)}
 		<Pane defaultSize={getDefaultSize()} class="h-full" data-testid={`pane-${node.data.nodeId}`}>
 			{#if node.data.sessionId !== undefined}
-				<div
-					data-testid="terminal-container"
-					class="h-full"
-					bind:this={screenRefs[i]}
-				>
-					<TerminalScreen
-						{tabId}
-						nodeId={node.data.nodeId}
-						sessionId={node.data.sessionId}
-						height={node.data.height}
-						width={node.data.width}
-						area={node.data.area}
-						screenManagementDispatch={disspatchCommand}
-						onSessionExit={onExit}
-					/>
-				</div>
+				<TerminalScreen
+					{tabId}
+					nodeId={node.data.nodeId}
+					sessionId={node.data.sessionId}
+					screenManagementDispatch={disspatchCommand}
+					onSessionExit={onExit}
+				/>
 			{:else}
 			<svelte:self {tabId} tree={node} {disspatchCommand} {onExit} />
 			{/if}

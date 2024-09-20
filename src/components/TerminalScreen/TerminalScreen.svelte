@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Readable } from 'svelte/store';
+	import { derived, writable } from 'svelte/store';
 	import '@xterm/xterm/css/xterm.css';
 	import { Terminal } from '@xterm/xterm';
 	import { FitAddon } from '@xterm/addon-fit';
@@ -13,9 +13,6 @@
 	export let tabId: string | undefined = undefined;
 	export let nodeId: number | undefined = undefined;
 	export let sessionId: number | undefined;
-	export let height: Readable<number>;
-	export let width: Readable<number>;
-	export let area: Readable<number>;
 	export let screenManagementDispatch: (
 		screenCommand: string,
 		callerTabId?: string,
@@ -27,7 +24,17 @@
 		nodeId: number | undefined
 	) => void;
 
-	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${sessionId} | area: ${$area}`);
+	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${sessionId}`);
+
+	export async function SerializeScreen() {
+		let { SerializeAddon } = await import('@xterm/addon-serialize');
+		if(terminal) {
+			const serializer = new SerializeAddon();
+			terminal.loadAddon(serializer);
+			return serializer.serialize();
+		}
+		return ''
+	}
 
 	let loaded = false;
 	let resizing = false;
@@ -35,6 +42,14 @@
 	let fitAddon = new FitAddon();
 	let terminal: Terminal;
 	let session = sessions.get(sessionId ?? -1);
+
+	let height = writable(0);
+	let width = writable(0);
+	let area = derived([height, width], ([$height, $width]) => $height * $width);
+
+	height.subscribe(($h) => {
+		console.log($h);
+	})
 
 	let update = () => {
 		resizing = false;
@@ -59,7 +74,7 @@
 		loaded = true;
 
 		const areaUnsub = area.subscribe(($area) => {
-			// console.log(`resizing for tab ${tabId} : node ${nodeId}`);
+			console.log(`resizing for tab ${tabId} : node ${nodeId}`);
 			if ($area !== 0) {
 				requestUpdate();
 			}
@@ -168,18 +183,12 @@
 	};
 </script>
 
-{#if loaded && $userConfiguration.loaded}
-	<div
-		class="terminal-screen px-3 h-full w-full"
-		use:xtermJs
-		
-	/>
-{/if}
+<div class="h-full" bind:clientHeight={$height} bind:clientWidth={$width}>
+	{#if loaded && $userConfiguration.loaded}
+		<div
+			class="terminal-screen px-3 h-full w-full"
+			use:xtermJs
+		/>
+	{/if}
+</div>
 
-<style>
-	.terminal-screen {
-		height: var(--termHeight, 100%);
-		width: var(--termWidth, 100%);
-		overflow: hidden;
-	}
-</style>

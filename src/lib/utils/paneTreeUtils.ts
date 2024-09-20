@@ -1,4 +1,4 @@
-import { derived, get, writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import type { TreeNode, PaneData, Direction } from '$lib/types';
 import { sessions, userConfiguration } from '$lib/store';
 
@@ -61,18 +61,11 @@ export const createSingleNode = async ({
 }: CreateSingleNodeArgs) => {
 	const newId = get(lastNodeId) + 1;
 
-	const height = writable(0);
-	const width = writable(0);
-	const area = derived([height, width], ([$height, $width]) => $height * $width);
-
 	const newNode: TreeNode<PaneData> = {
 		data: {
 			nodeId: newId,
 			parentNodeId,
-			sessionId,
-			height,
-			width,
-			area
+			sessionId
 		},
 		childNodes: []
 	};

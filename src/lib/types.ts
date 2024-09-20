@@ -1,5 +1,3 @@
-import type { Readable, Writable } from 'svelte/store';
-
 export interface CommandKeyMap {
 	commandName: string;
 	keyCombo: string;
@@ -70,9 +68,6 @@ export interface PaneData {
 	parentNodeId?: number;
 	direction?: Direction;
 	sessionId?: number;
-	height: Writable<number>;
-	width: Writable<number>;
-	area: Readable<number>;
 }
 
 export interface TabTreeInfo {
