@@ -11,13 +11,13 @@ import {
 
 export const _sessions = new Map<number, ShellSession>();
 
-function toHex(str: string) {
-	let result = '';
-	for (let i = 0; i < str.length; i++) {
-		result += `\\0x${str.charCodeAt(i).toString(16)}`;
-	}
-	return result;
-}
+// function toHex(str: string) {
+// 	let result = '';
+// 	for (let i = 0; i < str.length; i++) {
+// 		result += `\\0x${str.charCodeAt(i).toString(16)}`;
+// 	}
+// 	return result;
+// }
 
 const createSession = async ({
 	args,
@@ -28,11 +28,11 @@ const createSession = async ({
 	referringSessionId
 }: CreateSessionInputs) => {
 	let pid: number | null = null;
+	// eslint-disable-next-line prefer-const
 	let rawCwd = '';
-	let onShellOutputCallback: (data: string) => void = () => {};
-	let onShellOutputHasSubscriber = false;
-	let onShellExitCallback: (exitStatus: SessionExitStatus) => void = () => {};
-	let onShellExitHasSubscriber = false;
+	let scrollbackBuffer = '';
+	let shellOutputObservers: ((data: string) => void)[] = [];
+	let shellExitObservers: ((exitStatus: SessionExitStatus) => void)[] = [];
 	let shellExited = false;
 	let killCommandSent = false;
 
@@ -66,13 +66,20 @@ const createSession = async ({
 	};
 
 	const onShellOutput = (callback: (data: string) => void) => {
-		onShellOutputCallback = callback;
-		onShellOutputHasSubscriber = true;
+		shellOutputObservers.push(callback);
+		if(scrollbackBuffer !== '') {
+			callback(scrollbackBuffer);
+		}
+		return () => {
+			shellOutputObservers = shellOutputObservers.filter((o) => o !== callback);
+		}
 	};
 
 	const onShellExit = (callback: (exitStatus: SessionExitStatus) => void) => {
-		onShellExitCallback = callback;
-		onShellExitHasSubscriber = true;
+		shellExitObservers.push(callback);
+		return () => {
+			shellExitObservers = shellExitObservers.filter((o) => o !== callback);
+		}
 	};
 
 	const start = () => {
@@ -80,17 +87,22 @@ const createSession = async ({
 		_waitForExit();
 	};
 
+	const cacheScrollbackBuffer = (buffer: string) => {
+		scrollbackBuffer = buffer;
+		setTimeout(() => { scrollbackBuffer = '' }, 5000);
+	}
+
 	const _listenToReader = async () => {
 		// listen to session output
 		try {
 			while (sessionActive && pid !== null) {
 				// console.log('reading');
-				if (onShellOutputHasSubscriber) {
+				if (shellOutputObservers.length > 0) {
 					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
 					// console.log(shellData);
 					// const hex = toHex(shellData);
 					// console.log(hex);
-					onShellOutputCallback(shellData);
+					shellOutputObservers.forEach((o) => { o(shellData) });
 				}
 			}
 		} catch (e: unknown) {
@@ -108,10 +120,12 @@ const createSession = async ({
 		const exitCode = await invoke<number>(TAURI_COMMAND_WAIT_FOR_EXIT, { pid });
 		// console.log(exitCode);
 		shellExited = true;
-		if(onShellExitHasSubscriber) {
-			onShellExitCallback({
-			exitCode,
-			success: exitCode === 0 || (exitCode === 1 && killCommandSent)
+		if(shellExitObservers.length > 0) {
+			shellExitObservers.forEach((o) => {
+				o({
+					exitCode,
+					success: exitCode === 0 || (exitCode === 1 && killCommandSent)
+				})
 		});
 		}
 	};
@@ -131,6 +145,7 @@ const createSession = async ({
 		write,
 		kill,
 		start,
+		cacheScrollbackBuffer,
 		onShellOutput,
 		onShellExit,
 		dispose

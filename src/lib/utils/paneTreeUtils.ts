@@ -40,9 +40,9 @@ export const terminateSessions = (root: TreeNode<PaneData> | undefined | null) =
 	}
 };
 
-export const initializeTree = async() => {
+export const initializeTree = async(referringSessionId?: number) => {
 	const root = await createSingleNode({ createNewSession: false });
-	root.childNodes.push(await createSingleNode({ parentNodeId: root.data.nodeId }));
+	root.childNodes.push(await createSingleNode({ parentNodeId: root.data.nodeId, referringSessionId }));
 	return root;
 }
 

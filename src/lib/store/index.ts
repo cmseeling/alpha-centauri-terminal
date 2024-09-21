@@ -1,6 +1,6 @@
 import { derived, writable, type Writable } from 'svelte/store';
 import { createTabs } from '@melt-ui/svelte';
-import type { SystemInfo, TabTreeMap, UserConfiguration } from '$lib/types';
+import type { SystemInfo, UserConfiguration } from '$lib/types';
 
 export const isWebGL2Enabled = writable(false);
 

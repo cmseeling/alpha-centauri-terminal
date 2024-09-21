@@ -13,6 +13,7 @@
 	} from '$lib/utils/paneTreeUtils';
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
+	import { WINDOW_COMMAND_NEW_TAB, WINDOW_COMMAND_SPLIT_DOWN, WINDOW_COMMAND_SPLIT_RIGHT } from '$lib/constants';
 	
 	const appWindow = getCurrentWebviewWindow();
 
@@ -24,7 +25,7 @@
 
 		const newTabId = '' + new Date().getTime();
 
-		const newTree = await createSingleNode({ referringSessionId });
+		const newTree = await initializeTree(referringSessionId);
 		$tabTrees = { ...$tabTrees, [newTabId]: { tree: newTree } };
 
 		tabs = [
@@ -107,7 +108,7 @@
 	const handleCommandDispatch = (command: string, tabId?: string, nodeId?: number) => {
 		// console.log('received ' + command);
 		switch (command) {
-			case 'window:new_tab': {
+			case WINDOW_COMMAND_NEW_TAB: {
 				let referringSessionId = undefined;
 				if (tabId !== undefined && nodeId !== undefined) {
 					referringSessionId = $tabTrees[tabId].lastActiveSessionId;
@@ -116,7 +117,7 @@
 				addNewTab(referringSessionId);
 				break;
 			}
-			case 'window:split_right': {
+			case WINDOW_COMMAND_SPLIT_RIGHT: {
 				if (tabId !== undefined && nodeId !== undefined) {
 					const referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 					addNewPane(tabId, nodeId, 'horizontal', referringSessionId);
@@ -124,7 +125,7 @@
 				}
 				break;
 			}
-			case 'window:split_down': {
+			case WINDOW_COMMAND_SPLIT_DOWN: {
 				if (tabId !== undefined && nodeId !== undefined) {
 					const referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 					addNewPane(tabId, nodeId, 'vertical', referringSessionId);

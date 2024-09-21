@@ -9,6 +9,7 @@
 	import type { SessionExitStatus } from '$lib/types';
 	import { activeTab, isWebGL2Enabled, sessions, tabTrees, userConfiguration } from '$lib/store';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
+	import { WINDOW_COMMAND_SPLIT_DOWN, WINDOW_COMMAND_SPLIT_RIGHT } from '$lib/constants';
 
 	export let tabId: string | undefined = undefined;
 	export let nodeId: number | undefined = undefined;
@@ -42,6 +43,8 @@
 	let fitAddon = new FitAddon();
 	let terminal: Terminal;
 	let session = sessions.get(sessionId ?? -1);
+	let shellReadUnsub: () => void;
+	let shellExitUnsub: () => void;
 
 	let height = writable(0);
 	let width = writable(0);
@@ -95,10 +98,15 @@
 			cancelAnimationFrame(frame);
 			areaUnsub();
 			tabUnsub();
+			shellReadUnsub();
+			shellExitUnsub();
 		};
 	});
 
-	const dispatchCommand = (screenCommand: string) => {
+	const dispatchCommand = async (screenCommand: string) => {
+		if(screenCommand === WINDOW_COMMAND_SPLIT_DOWN || screenCommand === WINDOW_COMMAND_SPLIT_RIGHT) {
+			session?.cacheScrollbackBuffer(await SerializeScreen());
+		}
 		if (screenManagementDispatch) {
 			screenManagementDispatch(screenCommand, tabId, nodeId);
 		}
@@ -143,17 +151,17 @@
 				$tabTrees[tabId].lastActiveSessionId = session.pid;
 			}
 
-			terminal.element?.getElementsByTagName('textarea')[0].addEventListener('focus', () => {
+			terminal.textarea?.addEventListener('focus', () => {
 				if (tabId) {
 					$tabTrees[tabId].lastActiveSessionId = session.pid;
 				}
 			});
 
-			session.onShellOutput(async (data: string) => {
+			shellReadUnsub = session.onShellOutput(async (data: string) => {
 				await terminal.write(data);
 			});
 
-			session.onShellExit((exitStatus: SessionExitStatus) => {
+			shellExitUnsub = session.onShellExit((exitStatus: SessionExitStatus) => {
 				if (onSessionExit) {
 					onSessionExit(exitStatus, tabId, nodeId);
 				}

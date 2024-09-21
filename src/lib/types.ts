@@ -37,8 +37,9 @@ export interface ShellSession {
 	write: (data: string) => void;
 	kill: () => void;
 	start: () => void;
-	onShellOutput: (callback: (data: string) => void) => void;
-	onShellExit: (callback: (exitStatus: SessionExitStatus) => void) => void;
+	cacheScrollbackBuffer: (buffer: string) => void;
+	onShellOutput: (callback: (data: string) => void) => () => void;
+	onShellExit: (callback: (exitStatus: SessionExitStatus) => void) => () => void;
 	dispose: () => void;
 }
 

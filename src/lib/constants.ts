@@ -11,3 +11,7 @@ export const TAURI_COMMAND_CHECK_EXIT_STATUS = 'check_exit_status';
 export const TAURI_COMMAND_RESIZE = 'resize';
 export const TAURI_COMMAND_WRITE_TO_SESSION = 'write_to_session';
 export const TAURI_COMMAND_END_SESSION = 'end_session';
+
+export const WINDOW_COMMAND_NEW_TAB = 'window:new_tab';
+export const WINDOW_COMMAND_SPLIT_RIGHT = 'window:split_right';
+export const WINDOW_COMMAND_SPLIT_DOWN = 'window:split_down';
