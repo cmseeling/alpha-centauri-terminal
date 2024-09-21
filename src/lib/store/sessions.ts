@@ -69,6 +69,7 @@ const createSession = async ({
 		shellOutputObservers.push(callback);
 		if(scrollbackBuffer !== '') {
 			callback(scrollbackBuffer);
+			scrollbackBuffer = '';
 		}
 		return () => {
 			shellOutputObservers = shellOutputObservers.filter((o) => o !== callback);
@@ -89,7 +90,6 @@ const createSession = async ({
 
 	const cacheScrollbackBuffer = (buffer: string) => {
 		scrollbackBuffer = buffer;
-		setTimeout(() => { scrollbackBuffer = '' }, 5000);
 	}
 
 	const _listenToReader = async () => {
