@@ -1,3 +1,5 @@
+import type { Writable } from "svelte/store";
+
 export interface CommandKeyMap {
 	commandName: string;
 	keyCombo: string;
@@ -30,7 +32,11 @@ export interface Tab {
 	title: string;
 }
 
-export interface ShellSession {
+export interface IDisposable {
+    dispose(): void;
+}
+
+export interface ShellSession extends IDisposable {
 	pid: number;
 	rawCwd: string;
 	resize: (cols: number, rows: number) => void;
@@ -40,7 +46,6 @@ export interface ShellSession {
 	cacheScrollbackBuffer: (buffer: string) => void;
 	onShellOutput: (callback: (data: string) => void) => () => void;
 	onShellExit: (callback: (exitStatus: SessionExitStatus) => void) => () => void;
-	dispose: () => void;
 }
 
 export interface CreateSessionInputs {
@@ -69,6 +74,13 @@ export interface PaneData {
 	parentNodeId?: number;
 	direction?: Direction;
 	sessionId?: number;
+}
+
+export interface TabTree {
+	root: Writable<TreeNode<PaneData>>;
+	lastActiveSessionId?: number;
+	addNode: (startNodeId: number, direction: Direction, referringSessionId?: number) => void;
+	removeLeafNode: (nodeId: number) => boolean;
 }
 
 export interface TabTreeInfo {

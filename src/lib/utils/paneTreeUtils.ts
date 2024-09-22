@@ -40,11 +40,11 @@ export const terminateSessions = (root: TreeNode<PaneData> | undefined | null) =
 	}
 };
 
-export const initializeTree = async(referringSessionId?: number) => {
-	const root = await createSingleNode({ createNewSession: false });
-	root.childNodes.push(await createSingleNode({ parentNodeId: root.data.nodeId, referringSessionId }));
-	return root;
-}
+// export const initializeTree = async(referringSessionId?: number) => {
+// 	const root = await createSingleNode({ createNewSession: false });
+// 	root.childNodes.push(await createSingleNode({ parentNodeId: root.data.nodeId, referringSessionId }));
+// 	return root;
+// }
 
 interface CreateSingleNodeArgs {
 	parentNodeId?: number;
@@ -96,7 +96,8 @@ export const addNode = async (
 	referringSessionId?: number
 ): Promise<TreeNode<PaneData>> => {
 	if (tree === null) {
-		return await initializeTree();
+		const newNode = await createSingleNode({});
+		return newNode;
 	}
 
 	const [parentNode, startNode] = findNode(tree, startNodeId);
@@ -104,50 +105,25 @@ export const addNode = async (
 		return tree;
 	} else {
 		// PaneGroup is already going in the same direction so this new node can be added as a sibling
-		// alternatively, the direction was arbitrarily set
-		if (parentNode && (parentNode.data.direction === direction || parentNode.childNodes.length === 1)) {
+		if (parentNode && parentNode.data.direction === direction) {
 			parentNode.childNodes.push(
 				await createSingleNode({ parentNodeId: parentNode.data.nodeId, referringSessionId })
 			);
-			parentNode.data.direction = direction;
 		} else {
-			const newParent = await createSingleNode({
-				parentNodeId: startNode.data.parentNodeId,
-				createNewSession: false
-			});
-			newParent.data.direction = direction;
-			startNode.data.parentNodeId = newParent.data.nodeId;
-			// attach original
-			newParent.childNodes.push(startNode);
-			// create new
-			newParent.childNodes.push(
-				await createSingleNode({ parentNodeId: newParent.data.nodeId, referringSessionId })
-			)
-			// remove reference to original from parent
-			if(parentNode) {
-				const index = parentNode.childNodes.indexOf(startNode);
-				parentNode.childNodes.splice(index, 1, newParent);
-			}
-			else {
-				tree = newParent
-			}
-			// startNode.data.direction = direction;
-			// // pass session to child
-			// startNode.childNodes.push(
-			// 	await createSingleNode({
-			// 		parentNodeId: startNode.data.nodeId,
-			// 		sessionId: startNode.data.sessionId
-			// 	})
-			// );
-			// startNode.childNodes.push(
-			// 	await createSingleNode({ parentNodeId: startNode.data.nodeId, referringSessionId })
-			// );
-			// startNode.data.sessionId = undefined;
-			
+			startNode.data.direction = direction;
+			// pass session to child
+			startNode.childNodes.push(
+				await createSingleNode({
+					parentNodeId: startNode.data.nodeId,
+					sessionId: startNode.data.sessionId
+				})
+			);
+			startNode.childNodes.push(
+				await createSingleNode({ parentNodeId: startNode.data.nodeId, referringSessionId })
+			);
+			startNode.data.sessionId = undefined;
 		}
 	}
-
-	// console.log(tree);
 
 	return tree;
 };

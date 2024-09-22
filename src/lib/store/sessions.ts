@@ -9,7 +9,7 @@ import {
 	TAURI_COMMAND_WAIT_FOR_EXIT
 } from '$lib/constants';
 
-export const _sessions = new Map<number, ShellSession>();
+const _sessions = new Map<number, ShellSession>();
 
 // function toHex(str: string) {
 // 	let result = '';
@@ -90,6 +90,10 @@ const createSession = async ({
 
 	const cacheScrollbackBuffer = (buffer: string) => {
 		scrollbackBuffer = buffer;
+		// don't want the buffer taking up memory for too long if it never gets consumed
+		setTimeout(() => {
+			scrollbackBuffer = '';
+		}, 3000)
 	}
 
 	const _listenToReader = async () => {
@@ -161,9 +165,9 @@ export const sessions = {
   get: (sessionId: number) => _sessions.get(sessionId),
   remove: (sessionId: number) => {
     const session = _sessions.get(sessionId);
-			if(session) {
-				session.dispose();
-				_sessions.delete(sessionId);
-			}
+		if(session) {
+			session.dispose();
+			_sessions.delete(sessionId);
+		}
   }
 }

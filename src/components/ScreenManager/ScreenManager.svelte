@@ -2,18 +2,13 @@
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import { onMount } from 'svelte';
 	import type { Direction, SessionExitStatus } from '$lib/types';
-	import { activeTab, tabTrees, userConfiguration } from '$lib/store';
+	import { activeTab, userConfiguration } from '$lib/store';
 	import { addWarningToast } from '$lib/components/Toaster.svelte';
-	import {
-		addNode,
-		createSingleNode,
-		initializeTree,
-		removeLeafNode,
-		terminateSessions
-	} from '$lib/utils/paneTreeUtils';
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
 	import { WINDOW_COMMAND_NEW_TAB, WINDOW_COMMAND_SPLIT_DOWN, WINDOW_COMMAND_SPLIT_RIGHT } from '$lib/constants';
+	import { tabTrees } from '$lib/store/tabTrees';
+	import { addNode, createSingleNode, removeLeafNode, terminateSessions } from '$lib/utils/paneTreeUtils';
 	
 	const appWindow = getCurrentWebviewWindow();
 
@@ -25,8 +20,10 @@
 
 		const newTabId = '' + new Date().getTime();
 
-		const newTree = await initializeTree(referringSessionId);
+		const newTree = await createSingleNode({ referringSessionId });
+		// const newTree = await initializeTree(referringSessionId);
 		$tabTrees = { ...$tabTrees, [newTabId]: { tree: newTree } };
+		// await trees.createTree(newTabId, referringSessionId);
 
 		tabs = [
 			...tabs,
@@ -40,6 +37,7 @@
 
 	const handleNewTabClick = async () => {
 		const referringSessionId = $tabTrees[$activeTab].lastActiveSessionId;
+		// const referringSessionId = trees.get($activeTab)?.lastActiveSessionId;
 		await addNewTab(referringSessionId);
 	};
 
@@ -55,6 +53,8 @@
 		delete clone[tabId];
 		$tabTrees = clone;
 		// console.log($tabTrees);
+		
+		// trees.remove(tabId);
 		tabs = tabs.filter((tab) => {
 			return tab.id !== tabId;
 		});
@@ -74,6 +74,13 @@
 	) => {
 		// console.log(`Session process exited with code ${exitCode}`);
 		if (tabId && nodeId) {
+			// const tree = trees.get(tabId)
+			// if(tree) {
+			// 	const result = tree.removeLeafNode(nodeId);
+			// 	if (!result) {
+			// 		closeTabById(tabId);
+			// 	}
+			// }
 			if($tabTrees[tabId]) {
 				const newTree = removeLeafNode($tabTrees[tabId].tree, nodeId);
 				// console.log(newTree);
@@ -89,7 +96,6 @@
 		}
 	};
 
-	// todo: implement referring session id
 	const addNewPane = async (
 		tabId: string,
 		nodeId: number,
@@ -98,28 +104,30 @@
 	) => {
 		// console.log(`adding new pane: ${direction}`);
 		let tree = $tabTrees[tabId].tree;
+		// let tree = trees.get(tabId)
 		if (tree) {
 			tree = await addNode(tree, nodeId, direction, referringSessionId);
 			$tabTrees = { ...$tabTrees, [tabId]: { tree } };
+			// tree.addNode(nodeId, direction, referringSessionId);
 		}
 		// console.log($tabTrees);
 	};
 
 	const handleCommandDispatch = (command: string, tabId?: string, nodeId?: number) => {
 		// console.log('received ' + command);
+		let referringSessionId
+		if(tabId) {
+			referringSessionId = $tabTrees[tabId].lastActiveSessionId;
+			// referringSessionId = trees.get(tabId)?.lastActiveSessionId
+		}
 		switch (command) {
 			case WINDOW_COMMAND_NEW_TAB: {
-				let referringSessionId = undefined;
-				if (tabId !== undefined && nodeId !== undefined) {
-					referringSessionId = $tabTrees[tabId].lastActiveSessionId;
-				}
 				// console.log(referringSessionId);
 				addNewTab(referringSessionId);
 				break;
 			}
 			case WINDOW_COMMAND_SPLIT_RIGHT: {
 				if (tabId !== undefined && nodeId !== undefined) {
-					const referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 					addNewPane(tabId, nodeId, 'horizontal', referringSessionId);
 					// console.log($tabTrees)
 				}
@@ -127,7 +135,6 @@
 			}
 			case WINDOW_COMMAND_SPLIT_DOWN: {
 				if (tabId !== undefined && nodeId !== undefined) {
-					const referringSessionId = $tabTrees[tabId].lastActiveSessionId;
 					addNewPane(tabId, nodeId, 'vertical', referringSessionId);
 				}
 				break;
@@ -138,8 +145,10 @@
 	onMount(() => {
 		const unSubUsrCgf = userConfiguration.subscribe(async (config) => {
 			if (config.loaded) {
-				let newTree = await initializeTree();
+				let newTree = await createSingleNode({});
+				// let newTree = await initializeTree();
 				$tabTrees = { ...$tabTrees, '1': { tree: newTree } };
+				// await trees.createTree('1');
 				loaded = true;
 			}
 		});
