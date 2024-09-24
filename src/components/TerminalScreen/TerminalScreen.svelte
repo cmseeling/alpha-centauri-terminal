@@ -6,6 +6,7 @@
 	import { FitAddon } from '@xterm/addon-fit';
 	import { WebglAddon } from '@xterm/addon-webgl';
 	import { CanvasAddon } from '@xterm/addon-canvas';
+	import { SerializeAddon } from '@xterm/addon-serialize';
 	import type { SessionExitStatus } from '$lib/types';
 	import { activeTab, isWebGL2Enabled, sessions, userConfiguration } from '$lib/store';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
@@ -28,8 +29,7 @@
 
 	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${sessionId}`);
 
-	export async function SerializeScreen() {
-		let { SerializeAddon } = await import('@xterm/addon-serialize');
+	export function SerializeScreen() {
 		if(terminal) {
 			const serializer = new SerializeAddon();
 			terminal.loadAddon(serializer);
@@ -44,6 +44,7 @@
 	let fitAddon = new FitAddon();
 	let terminal: Terminal;
 	let session = sessions.get(sessionId ?? -1);
+	let shellExited = false;
 	let shellReadUnsub: () => void;
 	let shellExitUnsub: () => void;
 
@@ -88,14 +89,18 @@
 			if ($activeTab === tabId && terminal) {
 				setTimeout(() => {
 					requestUpdate();
-					// terminal.scrollToBottom();
+					terminal.scrollToBottom();
 					terminal.focus();
 				}, 10);
 			}
 		});
 
-		return () => {
+		return async () => {
 			// console.log(`terminal unmounting for ${tabId}:${nodeId}`);
+			console.log(shellExited);
+			if(!shellExited) {
+				session?.cacheScrollbackBuffer(SerializeScreen());
+			}
 			cancelAnimationFrame(frame);
 			areaUnsub();
 			tabUnsub();
@@ -105,9 +110,9 @@
 	});
 
 	const dispatchCommand = async (screenCommand: string) => {
-		if(screenCommand === WINDOW_COMMAND_SPLIT_DOWN || screenCommand === WINDOW_COMMAND_SPLIT_RIGHT) {
-			session?.cacheScrollbackBuffer(await SerializeScreen());
-		}
+		// if(screenCommand === WINDOW_COMMAND_SPLIT_DOWN || screenCommand === WINDOW_COMMAND_SPLIT_RIGHT) {
+		// 	session?.cacheScrollbackBuffer(await SerializeScreen());
+		// }
 		if (screenManagementDispatch) {
 			screenManagementDispatch(screenCommand, tabId, nodeId);
 		}
@@ -160,6 +165,7 @@
 			});
 
 			shellExitUnsub = session.onShellExit((exitStatus: SessionExitStatus) => {
+				shellExited = true;
 				if (onSessionExit) {
 					onSessionExit(exitStatus, tabId, nodeId);
 				}

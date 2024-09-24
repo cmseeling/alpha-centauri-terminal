@@ -65,7 +65,7 @@
 		class="h-full"
 		data-testid="pane-group"
 	>
-		{#each tree.childNodes as node, i (node.data.sessionId)}
+		{#each tree.childNodes as node, i (node.data.nodeId)}
 			<Pane defaultSize={getDefaultSize()} data-testid={`pane-${node.data.nodeId}`}>
 				<svelte:self {tabId} tree={node} {disspatchCommand} {onExit} />
 			</Pane>
