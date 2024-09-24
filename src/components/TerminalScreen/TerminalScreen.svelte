@@ -10,7 +10,6 @@
 	import type { SessionExitStatus } from '$lib/types';
 	import { activeTab, isWebGL2Enabled, sessions, userConfiguration } from '$lib/store';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
-	import { WINDOW_COMMAND_SPLIT_DOWN, WINDOW_COMMAND_SPLIT_RIGHT } from '$lib/constants';
 	import { tabTrees } from '$lib/store/tabTrees';
 
 	export let tabId: string | undefined = undefined;
@@ -110,9 +109,6 @@
 	});
 
 	const dispatchCommand = async (screenCommand: string) => {
-		// if(screenCommand === WINDOW_COMMAND_SPLIT_DOWN || screenCommand === WINDOW_COMMAND_SPLIT_RIGHT) {
-		// 	session?.cacheScrollbackBuffer(await SerializeScreen());
-		// }
 		if (screenManagementDispatch) {
 			screenManagementDispatch(screenCommand, tabId, nodeId);
 		}
