@@ -91,7 +91,7 @@ const terminateSessions = (root: TreeNode<PaneData> | undefined | null) => {
 const createTree = async (tabId: string, referringSessionId?: number) => {
   const newTree = await createSingleNode({ referringSessionId });
   update(($trees) => {
-    $trees = { ...$trees, [tabId]: { tree: newTree, lastActiveSessionId: newTree.data.sessionId } };
+    $trees = { ...$trees, [tabId]: newTree };
     return $trees;
   });
 }
@@ -102,7 +102,7 @@ const addNode = async (
   direction: Direction,
   referringSessionId?: number
 ) => {
-  const tree = get(_trees)[tabId].tree;
+  const tree = get(_trees)[tabId];
   const [parentNode, startNode] = findNode(tree, startNodeId);
   if (startNode !== null) {
     // PaneGroup is already going in the same direction so this new node can be added as a sibling
@@ -127,7 +127,7 @@ const addNode = async (
   }
 
   update(($trees) => {
-    $trees[tabId].tree = tree;
+    $trees[tabId] = tree;
     console.log($trees);
     return $trees;
   });
@@ -139,7 +139,7 @@ const removeLeafNode = (
 ): boolean => {
   let stillExists = true;
   update(($trees) => {
-    const tree = $trees[tabId].tree;
+    const tree = $trees[tabId];
     if (tree) {
       const [parentNode, nodeToDelete] = findNode(tree, nodeId);
       if (parentNode) {
@@ -191,7 +191,7 @@ export const trees = {
   removeLeafNode,
   remove: (tabId: string) => {
     update(($trees) => {
-      terminateSessions($trees[tabId].tree);
+      terminateSessions($trees[tabId]);
       delete $trees[tabId];
       return $trees;
     });

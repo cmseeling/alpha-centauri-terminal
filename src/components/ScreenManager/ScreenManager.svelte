@@ -193,7 +193,7 @@
 	<TabManager {tabs} on:newtab={handleNewTabClick} on:closetab={closeTab} let:tabId={screenTabId}>
 		<PaneManager
 			tabId={screenTabId}
-			tree={$trees[screenTabId].tree}
+			tree={$trees[screenTabId]}
 			disspatchCommand={handleCommandDispatch}
 			onExit={handleSessionExit}
 		/>

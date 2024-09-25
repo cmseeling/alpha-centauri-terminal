@@ -89,5 +89,5 @@ export interface TabTreeInfo {
 }
 
 export interface TabTreeMap {
-	[tabId: string]: TabTreeInfo;
+	[tabId: string]: TreeNode<PaneData>;
 }
