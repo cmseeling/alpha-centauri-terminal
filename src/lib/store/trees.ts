@@ -1,10 +1,8 @@
 import { get, writable } from "svelte/store";
 import type { Direction, PaneData, TabTreeMap, TreeNode } from "$lib/types";
-import { userConfiguration } from ".";
-import { sessions } from "./sessions";
+import { userConfiguration, sessions } from "$lib/store";
 
 const lastNodeId = writable(0);
-// const _trees = new Map<string, TabTree>();
 export const tabActiveSessions = new Map<string, number>();
 const _trees = writable({} as TabTreeMap);
 const { subscribe, update } = _trees;

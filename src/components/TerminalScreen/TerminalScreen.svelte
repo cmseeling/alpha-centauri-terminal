@@ -10,7 +10,6 @@
 	import type { SessionExitStatus } from '$lib/types';
 	import { activeTab, isWebGL2Enabled, sessions, userConfiguration } from '$lib/store';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
-	// import { tabTrees } from '$lib/store/tabTrees';
 	import { tabActiveSessions } from '$lib/store/trees';
 
 	export let tabId: string | undefined = undefined;
@@ -151,14 +150,6 @@
 		if (session) {
 			// set the last active session id of the tab to this session's pid
 			if (tabId) {
-				// $tabTrees[tabId].lastActiveSessionId = session.pid;
-				// terminal.textarea?.addEventListener('focus', () => {
-				// 	$tabTrees[tabId].lastActiveSessionId = session.pid;
-				// });
-				// $trees[tabId].lastActiveSessionId = session.pid;
-				// terminal.textarea?.addEventListener('focus', () => {
-				// 	$trees[tabId].lastActiveSessionId = session.pid;
-				// });
 				tabActiveSessions.set(tabId, session.pid);
 				terminal.textarea?.addEventListener('focus', () => {
 					tabActiveSessions.set(tabId, session.pid);

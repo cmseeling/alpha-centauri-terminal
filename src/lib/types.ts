@@ -1,5 +1,3 @@
-import type { Writable } from "svelte/store";
-
 export interface CommandKeyMap {
 	commandName: string;
 	keyCombo: string;
@@ -62,30 +60,18 @@ export interface SessionExitStatus {
 	success: boolean;
 }
 
+export type Direction = 'horizontal' | 'vertical';
+
 export interface TreeNode<T> {
 	data: T;
 	childNodes: TreeNode<T>[];
 }
-
-export type Direction = 'horizontal' | 'vertical';
 
 export interface PaneData {
 	nodeId: number;
 	parentNodeId?: number;
 	direction?: Direction;
 	sessionId?: number;
-}
-
-export interface TabTree {
-	root: Writable<TreeNode<PaneData>>;
-	lastActiveSessionId?: number;
-	addNode: (startNodeId: number, direction: Direction, referringSessionId?: number) => void;
-	removeLeafNode: (nodeId: number) => boolean;
-}
-
-export interface TabTreeInfo {
-	tree: TreeNode<PaneData>;
-	lastActiveSessionId?: number;
 }
 
 export interface TabTreeMap {
