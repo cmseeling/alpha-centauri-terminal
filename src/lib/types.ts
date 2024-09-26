@@ -73,11 +73,6 @@ export interface TabTreeMap {
 	[tabId: string]: TreeNode<PaneData>;
 }
 
-export interface Tab {
-	id: string;
-	title: string;
-}
-
 export interface TabInfo {
 	id: string;
 	name: string;

@@ -1,11 +1,34 @@
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { expect, test, vi } from 'vitest';
+import { tabs } from '$lib/store';
 
 import TabManager from './TabManager.svelte';
 
+const mockPaneData = {
+	nodeId: 1,
+}
+
+const mockTabInfo1 = {
+	id: '1',
+	name: 'Tab 1',
+	sessionTree: {
+		data: mockPaneData,
+		childNodes: []
+	}
+};
+
+const mockTabInfo2 = {
+	id: '2',
+	name: 'Tab 2',
+	sessionTree: {
+		data: mockPaneData,
+		childNodes: []
+	}
+};
+
 test('render the tab bar', async () => {
-	// const tabs = [{ id: '1', title: 'Tab 1' }];
+	tabs.set([mockTabInfo1]);
 	render(TabManager);
 	const button = screen.getByTestId('add-new-tab');
 
@@ -13,7 +36,7 @@ test('render the tab bar', async () => {
 });
 
 test('new tab button dispatches event', async () => {
-	// const tabs = [{ id: '1', title: 'Tab 1' }];
+	tabs.set([mockTabInfo1]);
 	const user = userEvent.setup();
 	const { component } = render(TabManager);
 	const mock = vi.fn(() => {});
@@ -27,10 +50,7 @@ test('new tab button dispatches event', async () => {
 });
 
 test('close button dispatches event', async () => {
-	// const tabs = [
-	// 	{ id: '1', title: 'Tab 1' },
-	// 	{ id: '2', title: 'Tab 2' }
-	// ];
+	tabs.set([mockTabInfo1, mockTabInfo2]);
 	const user = userEvent.setup();
 	const { component } = render(TabManager);
 

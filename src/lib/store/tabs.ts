@@ -6,7 +6,7 @@ import { userConfiguration } from ".";
 const lastNodeId = writable(0);
 export const tabActiveSessions = new Map<string, number>();
 const _tabs = writable([] as TabInfo[]);
-const { update, subscribe } = _tabs;
+const { set, update, subscribe } = _tabs;
 
 const findNode = (
 	root: TreeNode<PaneData> | undefined | null,
@@ -206,6 +206,7 @@ const closeTab = (tabId: string) => {
 }
 
 export const tabs = {
+  set,
   subscribe,
   createTab,
   addNode,
