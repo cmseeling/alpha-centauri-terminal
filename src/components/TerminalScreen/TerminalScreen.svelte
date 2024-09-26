@@ -8,9 +8,8 @@
 	import { CanvasAddon } from '@xterm/addon-canvas';
 	import { SerializeAddon } from '@xterm/addon-serialize';
 	import type { SessionExitStatus } from '$lib/types';
-	import { activeTab, isWebGL2Enabled, sessions, userConfiguration } from '$lib/store';
+	import { activeTab, isWebGL2Enabled, sessions, tabActiveSessions, userConfiguration } from '$lib/store';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
-	import { tabActiveSessions } from '$lib/store/trees';
 
 	export let tabId: string | undefined = undefined;
 	export let nodeId: number | undefined = undefined;

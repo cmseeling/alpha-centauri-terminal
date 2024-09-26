@@ -25,11 +25,6 @@ export interface UserConfiguration {
 	loaded: boolean;
 }
 
-export interface Tab {
-	id: string;
-	title: string;
-}
-
 export interface IDisposable {
     dispose(): void;
 }
@@ -76,4 +71,15 @@ export interface PaneData {
 
 export interface TabTreeMap {
 	[tabId: string]: TreeNode<PaneData>;
+}
+
+export interface Tab {
+	id: string;
+	title: string;
+}
+
+export interface TabInfo {
+	id: string;
+	name: string;
+	sessionTree: TreeNode<PaneData>;
 }

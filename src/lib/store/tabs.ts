@@ -1,11 +1,12 @@
+import type { Direction, PaneData, TabInfo, TreeNode } from "$lib/types";
 import { get, writable } from "svelte/store";
-import type { Direction, PaneData, TabTreeMap, TreeNode } from "$lib/types";
-import { userConfiguration, sessions } from "$lib/store";
+import { sessions } from "./sessions";
+import { userConfiguration } from ".";
 
 const lastNodeId = writable(0);
 export const tabActiveSessions = new Map<string, number>();
-const _trees = writable({} as TabTreeMap);
-const { subscribe, update } = _trees;
+const _tabs = writable([] as TabInfo[]);
+const { update, subscribe } = _tabs;
 
 const findNode = (
 	root: TreeNode<PaneData> | undefined | null,
@@ -86,12 +87,24 @@ const terminateSessions = (root: TreeNode<PaneData> | undefined | null) => {
 	}
 };
 
-const createTree = async (tabId: string, referringSessionId?: number) => {
+interface CreateTabArgs {
+  tabName?: string;
+  referringSessionId?: number
+}
+
+const createTab = async ({tabName, referringSessionId}: CreateTabArgs) => {
+  const newTabId = '' + new Date().getTime();
   const newTree = await createSingleNode({ referringSessionId });
-  update(($trees) => {
-    $trees = { ...$trees, [tabId]: newTree };
-    return $trees;
+  update(($tabs) => {
+    $tabs.push({
+      id: newTabId,
+      name: (tabName !== undefined) ? tabName : 'New Tab',
+      sessionTree: newTree
+    });
+    return $tabs;
   });
+
+  return newTabId;
 }
 
 const addNode = async (
@@ -100,35 +113,37 @@ const addNode = async (
   direction: Direction,
   referringSessionId?: number
 ) => {
-  const tree = get(_trees)[tabId];
-  const [parentNode, startNode] = findNode(tree, startNodeId);
-  if (startNode !== null) {
-    // PaneGroup is already going in the same direction so this new node can be added as a sibling
-    if (parentNode && parentNode.data.direction === direction) {
-      parentNode.childNodes.push(
-        await createSingleNode({ parentNodeId: parentNode.data.nodeId, referringSessionId })
-      );
-    } else {
-      startNode.data.direction = direction;
-      // pass session to child
-      startNode.childNodes.push(
-        await createSingleNode({
-          parentNodeId: startNode.data.nodeId,
-          sessionId: startNode.data.sessionId
-        })
-      );
-      startNode.childNodes.push(
-        await createSingleNode({ parentNodeId: startNode.data.nodeId, referringSessionId })
-      );
-      startNode.data.sessionId = undefined;
+  const tree = get(_tabs).find((tab) => tab.id === tabId)?.sessionTree;
+  if(tree) {
+    const [parentNode, startNode] = findNode(tree, startNodeId);
+    if (startNode !== null) {
+      // PaneGroup is already going in the same direction so this new node can be added as a sibling
+      if (parentNode && parentNode.data.direction === direction) {
+        parentNode.childNodes.push(
+          await createSingleNode({ parentNodeId: parentNode.data.nodeId, referringSessionId })
+        );
+      } else {
+        startNode.data.direction = direction;
+        // pass session to child
+        startNode.childNodes.push(
+          await createSingleNode({
+            parentNodeId: startNode.data.nodeId,
+            sessionId: startNode.data.sessionId
+          })
+        );
+        startNode.childNodes.push(
+          await createSingleNode({ parentNodeId: startNode.data.nodeId, referringSessionId })
+        );
+        startNode.data.sessionId = undefined;
+      }
     }
-  }
 
-  update(($trees) => {
-    $trees[tabId] = tree;
-    console.log($trees);
-    return $trees;
-  });
+    update(($tabs) => {
+      const tab = $tabs.find((tab) => tab.id === tabId);
+      tab!.sessionTree = tree
+      return $tabs;
+    });
+  }
 };
 
 const removeLeafNode = (
@@ -136,8 +151,8 @@ const removeLeafNode = (
   nodeId: number
 ): boolean => {
   let stillExists = true;
-  update(($trees) => {
-    const tree = $trees[tabId];
+  update(($tabs) => {
+    const tree = get(_tabs).find((tab) => tab.id === tabId)?.sessionTree;
     if (tree) {
       const [parentNode, nodeToDelete] = findNode(tree, nodeId);
       if (parentNode) {
@@ -168,30 +183,32 @@ const removeLeafNode = (
               sessions.remove(nodeToDelete.data.sessionId);
               nodeToDelete.data.sessionId = undefined;
             }
-            delete $trees[tabId];
+            $tabs = $tabs.filter((tab) => tab.id !== tabId);
             stillExists = false;
           }
         }
       }
     }
 
-    return $trees;
+    return $tabs;
   })
 
   return stillExists
 };
 
-export const trees = {
-  createTree,
+const closeTab = (tabId: string) => {
+  update(($tabs) => {
+    const tabToClose = $tabs.find((tab) => tab.id === tabId);
+    terminateSessions(tabToClose?.sessionTree);
+    $tabs = $tabs.filter((tab) => tab.id !== tabId);
+    return $tabs
+  });
+}
+
+export const tabs = {
   subscribe,
-  getTabTree: (tabId: string) => get(_trees)[tabId],
+  createTab,
   addNode,
   removeLeafNode,
-  remove: (tabId: string) => {
-    update(($trees) => {
-      terminateSessions($trees[tabId]);
-      delete $trees[tabId];
-      return $trees;
-    });
-  }
+  closeTab
 }

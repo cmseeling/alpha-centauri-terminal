@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { melt } from '@melt-ui/svelte';
-	import type { Tab } from '$lib/types';
-	import { content, list, root, trigger } from '$lib/store';
+	import { content, list, root, trigger, tabs } from '$lib/store';
 	import Add from 'virtual:icons/mdi/add';
 	import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 
-	export let tabs: Tab[] = [{ id: '1', title: 'Tab 1' }];
+	// export let tabs: Tab[] = [{ id: '1', title: 'Tab 1' }];
 
 	const dispatch = createEventDispatcher();
 
@@ -21,13 +20,13 @@
 
 <div use:melt={$root} class="flex h-full flex-col">
 	<div use:melt={$list} class="flex shrink-0 flex-row items-center bg-slate-400">
-		{#each tabs as triggerItem (triggerItem.id)}
+		{#each $tabs as triggerItem (triggerItem.id)}
 			<div
 				use:melt={$trigger(triggerItem.id)}
 				class="trigger flex h-6 cursor-pointer items-center justify-center rounded-t-lg
 					border-r border-black bg-gray-950 pe-2 ps-2 text-white opacity-75 data-[state=active]:opacity-100"
 			>
-				{triggerItem.title}
+				{triggerItem.name}
 				<button
 					class="border-0 bg-gray-950 pl-2 pt-0.5 text-white"
 					on:click={() => closeTabClicked(triggerItem.id)}
@@ -46,9 +45,9 @@
 		</button>
 	</div>
 	<div class="h-full overflow-y-hidden bg-gray-950">
-		{#each tabs as tabItem (tabItem.id)}
+		{#each $tabs as tabItem, index (tabItem.id)}
 			<div use:melt={$content(tabItem.id)} class="h-full">
-				<slot tabId={tabItem.id} />
+				<slot tabId={tabItem.id} tabIndex={index} />
 			</div>
 		{/each}
 	</div>

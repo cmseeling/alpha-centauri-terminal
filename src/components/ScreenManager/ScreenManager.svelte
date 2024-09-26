@@ -2,7 +2,7 @@
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import { onMount } from 'svelte';
 	import type { Direction, SessionExitStatus } from '$lib/types';
-	import { activeTab, userConfiguration, trees, tabActiveSessions } from '$lib/store';
+	import { activeTab, tabs, tabActiveSessions, userConfiguration } from '$lib/store';
 	import { WINDOW_COMMAND_NEW_TAB, WINDOW_COMMAND_SPLIT_DOWN, WINDOW_COMMAND_SPLIT_RIGHT } from '$lib/constants';
 	import { addWarningToast } from '$lib/components/Toaster.svelte';
 	import TabManager from '$components/TabManager/TabManager.svelte';
@@ -11,22 +11,10 @@
 	const appWindow = getCurrentWebviewWindow();
 
 	let loaded = false;
-	let tabs = [{ id: '1', title: 'Tab 1' }];
 
 	const addNewTab = async (referringSessionId?: number) => {
-		// console.log('adding new tab');
-		const newTabId = '' + new Date().getTime();
-
-		await trees.createTree(newTabId, referringSessionId);
-
-		tabs = [
-			...tabs,
-			{
-				id: newTabId,
-				title: 'New Tab'
-			}
-		];
-		$activeTab = tabs[tabs.length - 1].id;
+		const newTabId = await tabs.createTab({ referringSessionId });
+		$activeTab = newTabId;
 	};
 
 	const handleNewTabClick = async () => {
@@ -40,22 +28,13 @@
 	};
 
 	const closeTabById = (tabId: string) => {
-		trees.remove(tabId);
-		removeTabHelper(tabId);
-	};
-
-	const removeTabHelper = (tabId: string) => {
-		tabs = tabs.filter((tab) => {
-			return tab.id !== tabId;
-		});
-		if (tabs.length > 0) {
+		tabs.closeTab(tabId);
+		if ($tabs.length > 0) {
 			if ($activeTab === tabId) {
-				$activeTab = tabs[0].id;
+				$activeTab = $tabs[0].id;
 			}
-		} else {
-			appWindow.close();
 		}
-	}
+	};
 
 	const handleSessionExit = (
 		exitStatus: SessionExitStatus,
@@ -64,11 +43,16 @@
 	) => {
 		// console.log(`Session process exited with code ${exitCode}`);
 		if (tabId && nodeId) {
-			const stillExists = trees.removeLeafNode(tabId, nodeId);
+			const stillExists = tabs.removeLeafNode(tabId, nodeId);
 			if(!stillExists) {
-				removeTabHelper(tabId);
+				if($tabs.length > 0) {
+					$activeTab = $tabs[0].id;
+				}
+				else {
+					appWindow.close();
+				}
 			}
-		}
+		} 
 		if (!exitStatus.success) {
 			addWarningToast('Session ended with non-zero exit code', `Exit code: ${exitStatus.exitCode}`);
 		}
@@ -81,7 +65,7 @@
 		referringSessionId?: number
 	) => {
 		// console.log(`adding new pane: ${direction}`);
-		trees.addNode(tabId, nodeId, direction, referringSessionId)
+		tabs.addNode(tabId, nodeId, direction, referringSessionId)
 	};
 
 	const handleCommandDispatch = (command: string, tabId?: string, nodeId?: number) => {
@@ -114,8 +98,8 @@
 	onMount(() => {
 		const unSubUsrCgf = userConfiguration.subscribe(async (config) => {
 			if (config.loaded) {
-				await trees.createTree('1');
-				console.log($trees)
+				const newTabId = await tabs.createTab({ tabName: 'Tab 1' });
+				$activeTab = newTabId;
 				loaded = true;
 			}
 		});
@@ -127,10 +111,10 @@
 </script>
 
 {#if loaded && $userConfiguration.loaded}
-	<TabManager {tabs} on:newtab={handleNewTabClick} on:closetab={closeTab} let:tabId={screenTabId}>
+	<TabManager on:newtab={handleNewTabClick} on:closetab={closeTab} let:tabId={screenTabId} let:tabIndex={tabIndex}>
 		<PaneManager
 			tabId={screenTabId}
-			tree={$trees[screenTabId]}
+			tree={$tabs[tabIndex].sessionTree}
 			disspatchCommand={handleCommandDispatch}
 			onExit={handleSessionExit}
 		/>

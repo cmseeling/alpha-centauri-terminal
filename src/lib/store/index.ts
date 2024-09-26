@@ -26,4 +26,4 @@ export const {
 } = createTabs({ defaultValue: '1' });
 
 export { sessions } from './sessions';
-export { trees, tabActiveSessions } from './trees';
+export { tabs, tabActiveSessions } from './tabs';

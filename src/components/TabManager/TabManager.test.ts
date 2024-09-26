@@ -5,17 +5,17 @@ import { expect, test, vi } from 'vitest';
 import TabManager from './TabManager.svelte';
 
 test('render the tab bar', async () => {
-	const tabs = [{ id: '1', title: 'Tab 1' }];
-	render(TabManager, { tabs });
+	// const tabs = [{ id: '1', title: 'Tab 1' }];
+	render(TabManager);
 	const button = screen.getByTestId('add-new-tab');
 
 	expect(button).toBeInTheDocument();
 });
 
 test('new tab button dispatches event', async () => {
-	const tabs = [{ id: '1', title: 'Tab 1' }];
+	// const tabs = [{ id: '1', title: 'Tab 1' }];
 	const user = userEvent.setup();
-	const { component } = render(TabManager, { tabs });
+	const { component } = render(TabManager);
 	const mock = vi.fn(() => {});
 	component.$on('newtab', mock);
 
@@ -27,12 +27,12 @@ test('new tab button dispatches event', async () => {
 });
 
 test('close button dispatches event', async () => {
-	const tabs = [
-		{ id: '1', title: 'Tab 1' },
-		{ id: '2', title: 'Tab 2' }
-	];
+	// const tabs = [
+	// 	{ id: '1', title: 'Tab 1' },
+	// 	{ id: '2', title: 'Tab 2' }
+	// ];
 	const user = userEvent.setup();
-	const { component } = render(TabManager, { tabs });
+	const { component } = render(TabManager);
 
 	let eventTabId = '';
 	const mock = vi.fn((event) => {
