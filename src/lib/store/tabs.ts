@@ -202,11 +202,21 @@ const closeTab = (tabId: string) => {
 	});
 };
 
+const closeAll = () => {
+	update(($tabs) => {
+		$tabs.forEach((tab) => {
+			terminateSessions(tab.sessionTree);
+		});
+		return [];
+	});
+};
+
 export const tabs = {
 	set,
 	subscribe,
 	createTab,
 	addNode,
 	removeLeafNode,
-	closeTab
+	closeTab,
+	closeAll
 };
