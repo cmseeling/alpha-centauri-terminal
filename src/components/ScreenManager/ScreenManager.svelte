@@ -3,11 +3,15 @@
 	import { onMount } from 'svelte';
 	import type { Direction, SessionExitStatus } from '$lib/types';
 	import { activeTab, tabs, tabActiveSessions, userConfiguration } from '$lib/store';
-	import { WINDOW_COMMAND_NEW_TAB, WINDOW_COMMAND_SPLIT_DOWN, WINDOW_COMMAND_SPLIT_RIGHT } from '$lib/constants';
+	import {
+		WINDOW_COMMAND_NEW_TAB,
+		WINDOW_COMMAND_SPLIT_DOWN,
+		WINDOW_COMMAND_SPLIT_RIGHT
+	} from '$lib/constants';
 	import { addWarningToast } from '$lib/components/Toaster.svelte';
 	import TabManager from '$components/TabManager/TabManager.svelte';
 	import PaneManager from '$components/PaneManager/PaneManager.svelte';
-	
+
 	const appWindow = getCurrentWebviewWindow();
 
 	let loaded = false;
@@ -44,15 +48,14 @@
 		// console.log(`Session process exited with code ${exitCode}`);
 		if (tabId && nodeId) {
 			const stillExists = tabs.removeLeafNode(tabId, nodeId);
-			if(!stillExists) {
-				if($tabs.length > 0) {
+			if (!stillExists) {
+				if ($tabs.length > 0) {
 					$activeTab = $tabs[0].id;
-				}
-				else {
+				} else {
 					appWindow.close();
 				}
 			}
-		} 
+		}
 		if (!exitStatus.success) {
 			addWarningToast('Session ended with non-zero exit code', `Exit code: ${exitStatus.exitCode}`);
 		}
@@ -65,13 +68,13 @@
 		referringSessionId?: number
 	) => {
 		// console.log(`adding new pane: ${direction}`);
-		tabs.addNode(tabId, nodeId, direction, referringSessionId)
+		tabs.addNode(tabId, nodeId, direction, referringSessionId);
 	};
 
 	const handleCommandDispatch = (command: string, tabId?: string, nodeId?: number) => {
 		// console.log('received ' + command);
-		let referringSessionId
-		if(tabId) {
+		let referringSessionId;
+		if (tabId) {
 			referringSessionId = tabActiveSessions.get($activeTab);
 		}
 		switch (command) {
@@ -111,7 +114,12 @@
 </script>
 
 {#if loaded && $userConfiguration.loaded}
-	<TabManager on:newtab={handleNewTabClick} on:closetab={closeTab} let:tabId={screenTabId} let:tabIndex={tabIndex}>
+	<TabManager
+		on:newtab={handleNewTabClick}
+		on:closetab={closeTab}
+		let:tabId={screenTabId}
+		let:tabIndex
+	>
 		<PaneManager
 			tabId={screenTabId}
 			tree={$tabs[tabIndex].sessionTree}

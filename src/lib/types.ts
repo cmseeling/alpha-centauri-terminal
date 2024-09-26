@@ -26,7 +26,7 @@ export interface UserConfiguration {
 }
 
 export interface IDisposable {
-    dispose(): void;
+	dispose(): void;
 }
 
 export interface ShellSession extends IDisposable {

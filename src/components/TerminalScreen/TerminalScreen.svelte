@@ -8,7 +8,13 @@
 	import { CanvasAddon } from '@xterm/addon-canvas';
 	import { SerializeAddon } from '@xterm/addon-serialize';
 	import type { SessionExitStatus } from '$lib/types';
-	import { activeTab, isWebGL2Enabled, sessions, tabActiveSessions, userConfiguration } from '$lib/store';
+	import {
+		activeTab,
+		isWebGL2Enabled,
+		sessions,
+		tabActiveSessions,
+		userConfiguration
+	} from '$lib/store';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
 
 	export let tabId: string | undefined = undefined;
@@ -28,12 +34,12 @@
 	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${sessionId}`);
 
 	export function SerializeScreen() {
-		if(terminal) {
+		if (terminal) {
 			const serializer = new SerializeAddon();
 			terminal.loadAddon(serializer);
 			return serializer.serialize();
 		}
-		return ''
+		return '';
 	}
 
 	let loaded = false;
@@ -52,7 +58,7 @@
 
 	height.subscribe(($h) => {
 		console.log($h);
-	})
+	});
 
 	let update = () => {
 		resizing = false;
@@ -96,7 +102,7 @@
 		return async () => {
 			// console.log(`terminal unmounting for ${tabId}:${nodeId}`);
 			console.log(shellExited);
-			if(!shellExited) {
+			if (!shellExited) {
 				session?.cacheScrollbackBuffer(SerializeScreen());
 			}
 			cancelAnimationFrame(frame);
@@ -183,7 +189,7 @@
 				// console.log(oscPayload);
 				session.rawCwd = oscPayload;
 				return false;
-			})
+			});
 
 			session.start();
 		}
@@ -192,10 +198,6 @@
 
 <div class="h-full" bind:clientHeight={$height} bind:clientWidth={$width}>
 	{#if loaded && $userConfiguration.loaded}
-		<div
-			class="terminal-screen px-3 h-full w-full"
-			use:xtermJs
-		/>
+		<div class="terminal-screen h-full w-full px-3" use:xtermJs />
 	{/if}
 </div>
-

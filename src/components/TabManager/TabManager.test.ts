@@ -6,8 +6,8 @@ import { tabs } from '$lib/store';
 import TabManager from './TabManager.svelte';
 
 const mockPaneData = {
-	nodeId: 1,
-}
+	nodeId: 1
+};
 
 const mockTabInfo1 = {
 	id: '1',

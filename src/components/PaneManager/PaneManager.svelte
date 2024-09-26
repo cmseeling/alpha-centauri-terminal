@@ -22,10 +22,9 @@
 	// hack for now since if direction should never be undefined at this point.
 	// TODO: handle the error if it really is undefined
 	const forceDirectionType = (direction?: Direction): Direction => {
-		if(direction) {
+		if (direction) {
 			return direction as Direction;
-		}
-		else {
+		} else {
 			return 'horizontal';
 		}
 	};
@@ -33,7 +32,7 @@
 	const getDefaultSize = () => {
 		const fraction = 1 / tree.childNodes.length;
 		return fraction * 100;
-	}
+	};
 </script>
 
 {#if tree.childNodes.length === 0}
@@ -55,7 +54,7 @@
 				<svelte:self {tabId} tree={node} {disspatchCommand} {onExit} />
 			</Pane>
 			{#if i < tree.childNodes.length - 1}
-			<Divider direction={forceDirectionType(tree.data.direction)}/>
+				<Divider direction={forceDirectionType(tree.data.direction)} />
 			{/if}
 		{/each}
 	</PaneGroup>

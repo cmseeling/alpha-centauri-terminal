@@ -67,20 +67,20 @@ const createSession = async ({
 
 	const onShellOutput = (callback: (data: string) => void) => {
 		shellOutputObservers.push(callback);
-		if(scrollbackBuffer !== '') {
+		if (scrollbackBuffer !== '') {
 			callback(scrollbackBuffer);
 			scrollbackBuffer = '';
 		}
 		return () => {
 			shellOutputObservers = shellOutputObservers.filter((o) => o !== callback);
-		}
+		};
 	};
 
 	const onShellExit = (callback: (exitStatus: SessionExitStatus) => void) => {
 		shellExitObservers.push(callback);
 		return () => {
 			shellExitObservers = shellExitObservers.filter((o) => o !== callback);
-		}
+		};
 	};
 
 	const start = () => {
@@ -93,8 +93,8 @@ const createSession = async ({
 		// don't want the buffer taking up memory for too long if it never gets consumed
 		setTimeout(() => {
 			scrollbackBuffer = '';
-		}, 3000)
-	}
+		}, 3000);
+	};
 
 	const _listenToReader = async () => {
 		// listen to session output
@@ -106,7 +106,9 @@ const createSession = async ({
 					// console.log(shellData);
 					// const hex = toHex(shellData);
 					// console.log(hex);
-					shellOutputObservers.forEach((o) => { o(shellData) });
+					shellOutputObservers.forEach((o) => {
+						o(shellData);
+					});
 				}
 			}
 		} catch (e: unknown) {
@@ -124,13 +126,13 @@ const createSession = async ({
 		const exitCode = await invoke<number>(TAURI_COMMAND_WAIT_FOR_EXIT, { pid });
 		// console.log(exitCode);
 		shellExited = true;
-		if(shellExitObservers.length > 0) {
+		if (shellExitObservers.length > 0) {
 			shellExitObservers.forEach((o) => {
 				o({
 					exitCode,
 					success: exitCode === 0 || (exitCode === 1 && killCommandSent)
-				})
-		});
+				});
+			});
 		}
 	};
 
@@ -155,19 +157,19 @@ const createSession = async ({
 		dispose
 	};
 
-  _sessions.set(pid, returnValue);
+	_sessions.set(pid, returnValue);
 
 	return returnValue;
 };
 
 export const sessions = {
-  createSession,
-  get: (sessionId: number) => _sessions.get(sessionId),
-  remove: (sessionId: number) => {
-    const session = _sessions.get(sessionId);
-		if(session) {
+	createSession,
+	get: (sessionId: number) => _sessions.get(sessionId),
+	remove: (sessionId: number) => {
+		const session = _sessions.get(sessionId);
+		if (session) {
 			session.dispose();
 			_sessions.delete(sessionId);
 		}
-  }
-}
+	}
+};
