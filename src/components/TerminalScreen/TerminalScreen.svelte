@@ -13,6 +13,7 @@
 		isWebGL2Enabled,
 		sessions,
 		tabActiveSessions,
+		tabs,
 		userConfiguration
 	} from '$lib/store';
 	import { getKeyboardEventHandler } from '$lib/utils/keymapUtils';
@@ -188,6 +189,14 @@
 			terminal.parser.registerOscHandler(7, (oscPayload: string) => {
 				// console.log(oscPayload);
 				session.rawCwd = oscPayload;
+				return false;
+			});
+
+			terminal.parser.registerOscHandler(0, (payload: string) => {
+				// console.log(payload);
+				if (tabId) {
+					tabs.setName(tabId, payload);
+				}
 				return false;
 			});
 

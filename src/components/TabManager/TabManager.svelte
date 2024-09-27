@@ -26,7 +26,9 @@
 				class="trigger flex h-6 cursor-pointer items-center justify-center rounded-t-lg
 					border-r border-black bg-gray-950 pe-2 ps-2 text-white opacity-75 data-[state=active]:opacity-100"
 			>
-				{triggerItem.name}
+				<span class="w-40 overflow-hidden whitespace-nowrap">
+					{triggerItem.name}
+				</span>
 				<button
 					class="border-0 bg-gray-950 pl-2 pt-0.5 text-white"
 					on:click={() => closeTabClicked(triggerItem.id)}

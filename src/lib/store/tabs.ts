@@ -107,6 +107,16 @@ const createTab = async ({ tabName, referringSessionId }: CreateTabArgs) => {
 	return newTabId;
 };
 
+const setName = (tabId: string, newName: string) => {
+	update(($tabs) => {
+		const tab = $tabs.find((tab) => tab.id === tabId);
+		if (tab) {
+			tab.name = newName;
+		}
+		return $tabs;
+	});
+};
+
 const addNode = async (
 	tabId: string,
 	startNodeId: number,
@@ -215,6 +225,7 @@ export const tabs = {
 	set,
 	subscribe,
 	createTab,
+	setName,
 	addNode,
 	removeLeafNode,
 	closeTab,
