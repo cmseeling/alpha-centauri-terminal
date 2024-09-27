@@ -10,7 +10,7 @@ This is mostly a hobby project I started when [Hyper](https://hyper.is/) didn't 
 
 - As fast as [Alaccrity](https://alacritty.org/)
 - As feature rich as [Hyper](https://hyper.is/)
-- A [Guake](https://guake.github.io/) style terminal
+- A [Guake](https://guake.github.io/) style terminal (... yet)
 
 ## Building and running
 

@@ -5,7 +5,7 @@
 - [x] 3. Implement copy/paste/other editor commands
 - [x] 4. Implement window split and resizing
 - [ ] 5. Menu bar overhaul
-- [ ] 6. Figure out deep magic of current directory and current shell name
+- [x] 6. Figure out deep magic of current directory and current shell name
 - [ ] 7. Tab renaming
 - [x] 8. Update README
 - [ ] 9. playwright test execution on linux - refer to https://trac.webkit.org/wiki/RemoteInspectorGTKandWPE
@@ -17,7 +17,9 @@
 - [x] 15. Close tab on shell exit (user types 'exit'), end program if no tabs open
 - [x] 16. Investigate why child_killer call throws error
 - [ ] 17. add tests for better coverage and/or ignore some files
-- [ ] 18. Remove session from appstate, clean up Rust resources
+- [x] 18. Remove session from appstate, clean up Rust resources
+- [ ] 19. Hover text for full tab name/path?
+- [ ] 20. Change tab name when focusing different pane on tab
 
 ## Bugs
 

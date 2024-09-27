@@ -5,8 +5,6 @@
 	import Add from 'virtual:icons/mdi/add';
 	import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 
-	// export let tabs: Tab[] = [{ id: '1', title: 'Tab 1' }];
-
 	const dispatch = createEventDispatcher();
 
 	const newTabClicked = () => {
@@ -26,7 +24,7 @@
 				class="trigger flex h-6 cursor-pointer items-center justify-center rounded-t-lg
 					border-r border-black bg-gray-950 pe-2 ps-2 text-white opacity-75 data-[state=active]:opacity-100"
 			>
-				<span class="w-40 overflow-hidden whitespace-nowrap">
+				<span class="w-40 overflow-hidden whitespace-nowrap text-center">
 					{triggerItem.name}
 				</span>
 				<button
