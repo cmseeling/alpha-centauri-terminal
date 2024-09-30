@@ -159,6 +159,7 @@
 				tabActiveSessions.set(tabId, session.pid);
 				terminal.textarea?.addEventListener('focus', () => {
 					tabActiveSessions.set(tabId, session.pid);
+					// tabs.setName(tabId, session.title);
 				});
 			}
 
@@ -196,6 +197,16 @@
 				// console.log(payload);
 				if (tabId) {
 					tabs.setName(tabId, payload);
+					session.title = payload;
+				}
+				return false;
+			});
+
+			terminal.parser.registerOscHandler(2, (payload: string) => {
+				// console.log(payload);
+				if (tabId) {
+					tabs.setName(tabId, payload);
+					session.title = payload
 				}
 				return false;
 			});

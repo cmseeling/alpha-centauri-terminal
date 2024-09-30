@@ -30,6 +30,8 @@ const createSession = async ({
 	let pid: number | null = null;
 	// eslint-disable-next-line prefer-const
 	let rawCwd = '';
+	// eslint-disable-next-line prefer-const
+	let title = '';
 	let scrollbackBuffer = '';
 	let shellOutputObservers: ((data: string) => void)[] = [];
 	let shellExitObservers: ((exitStatus: SessionExitStatus) => void)[] = [];
@@ -147,6 +149,7 @@ const createSession = async ({
 	const returnValue: ShellSession = {
 		pid,
 		rawCwd,
+		title,
 		resize,
 		write,
 		kill,

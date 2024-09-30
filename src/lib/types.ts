@@ -32,6 +32,7 @@ export interface IDisposable {
 export interface ShellSession extends IDisposable {
 	pid: number;
 	rawCwd: string;
+	title: string;
 	resize: (cols: number, rows: number) => void;
 	write: (data: string) => void;
 	kill: () => void;
