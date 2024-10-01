@@ -12,6 +12,7 @@
 		activeTab,
 		isWebGL2Enabled,
 		sessions,
+		systemInfo,
 		tabActiveSessions,
 		tabs,
 		userConfiguration
@@ -56,6 +57,7 @@
 	let height = writable(0);
 	let width = writable(0);
 	let area = derived([height, width], ([$height, $width]) => $height * $width);
+	let oscCode = 2;
 
 	height.subscribe(($h) => {
 		console.log($h);
@@ -81,8 +83,6 @@
 
 	onMount(() => {
 		// console.log(`onMount for ${tabId}:${nodeId}`);
-		loaded = true;
-
 		const areaUnsub = area.subscribe(($area) => {
 			console.log(`resizing for tab ${tabId} : node ${nodeId}`);
 			if ($area !== 0) {
@@ -99,6 +99,13 @@
 				}, 10);
 			}
 		});
+
+		// why you gotta be weird windows?
+		if ($systemInfo.system === 'windows') {
+			oscCode = 0;
+		}
+
+		loaded = true;
 
 		return async () => {
 			// console.log(`terminal unmounting for ${tabId}:${nodeId}`);
@@ -159,7 +166,7 @@
 				tabActiveSessions.set(tabId, session.pid);
 				terminal.textarea?.addEventListener('focus', () => {
 					tabActiveSessions.set(tabId, session.pid);
-					// tabs.setName(tabId, session.title);
+					tabs.setName(tabId, session.title);
 				});
 			}
 
@@ -187,26 +194,17 @@
 
 			terminal.attachCustomKeyEventHandler(handleKeyboardEvent);
 
-			terminal.parser.registerOscHandler(7, (oscPayload: string) => {
-				// console.log(oscPayload);
-				session.rawCwd = oscPayload;
+			terminal.parser.registerOscHandler(7, (payload: string) => {
+				// console.log(payload);
+				session.rawCwd = payload;
 				return false;
 			});
 
-			terminal.parser.registerOscHandler(0, (payload: string) => {
-				// console.log(payload);
+			terminal.parser.registerOscHandler(oscCode, (payload: string) => {
+				console.log('OSC 0:', payload);
 				if (tabId) {
 					tabs.setName(tabId, payload);
 					session.title = payload;
-				}
-				return false;
-			});
-
-			terminal.parser.registerOscHandler(2, (payload: string) => {
-				// console.log(payload);
-				if (tabId) {
-					tabs.setName(tabId, payload);
-					session.title = payload
 				}
 				return false;
 			});

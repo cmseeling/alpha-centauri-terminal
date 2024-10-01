@@ -15,7 +15,7 @@ export interface Shell {
 }
 
 export interface SystemInfo {
-	system: string;
+	system: 'unix' | 'windows' | 'macos' | 'unknown';
 }
 
 export interface UserConfiguration {
