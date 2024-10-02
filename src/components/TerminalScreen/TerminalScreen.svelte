@@ -133,7 +133,7 @@
 		// console.log(node.parentElement?.style.backgroundColor);
 
 		terminal = new Terminal({
-			fontFamily: 'Consolas, Monospace',
+			fontFamily: 'Consolas, FiraMono Nerd Font Mono, Monospace',
 			theme: {
 				background: '#020617'
 			}
@@ -195,13 +195,13 @@
 			terminal.attachCustomKeyEventHandler(handleKeyboardEvent);
 
 			terminal.parser.registerOscHandler(7, (payload: string) => {
-				// console.log(payload);
+				console.log('OSC 7:', payload);
 				session.rawCwd = payload;
 				return false;
 			});
 
 			terminal.parser.registerOscHandler(oscCode, (payload: string) => {
-				console.log('OSC 0:', payload);
+				console.log('OSC 0/2:', payload);
 				if (tabId) {
 					tabs.setName(tabId, payload);
 					session.title = payload;
