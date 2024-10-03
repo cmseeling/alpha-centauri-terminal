@@ -30,3 +30,4 @@
 - [x] Need to focus a terminal on the current tab when pane closes that had focus
 - [ ] Opening more than 2 panes in the same direction does not resize existing panes evenly
 - [x] orphaned processes when - create new shell session, close tab
+- [ ] changing tabs does not focus the active tab text area
