@@ -6,7 +6,7 @@
 - [x] 4. Implement window split and resizing
 - [ ] 5. Menu bar overhaul
 - [x] 6. Figure out deep magic of current directory and current shell name
-- [ ] 7. Tab renaming
+- [x] 7. Tab renaming
 - [x] 8. Update README
 - [ ] 9. playwright test execution on linux - refer to https://trac.webkit.org/wiki/RemoteInspectorGTKandWPE
 - [x] 10. path to config file as argument
@@ -19,7 +19,9 @@
 - [ ] 17. add tests for better coverage and/or ignore some files
 - [x] 18. Remove session from appstate, clean up Rust resources
 - [ ] 19. Hover text for full tab name/path?
-- [ ] 20. Change tab name when focusing different pane on tab
+- [x] 20. Change tab name when focusing different pane on tab
+- [ ] 21. Add fonts to settings file
+- [ ] 22. Set OSC numbers in settings file
 
 ## Bugs
 
