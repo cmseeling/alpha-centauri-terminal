@@ -200,8 +200,29 @@
 				return false;
 			});
 
-			terminal.parser.registerOscHandler(oscCode, (payload: string) => {
-				console.log('OSC 0/2:', payload);
+			terminal.parser.registerOscHandler(51, (payload: string) => {
+				console.log('OSC 51:', payload);
+				session.rawCwd = payload;
+				return false;
+			});
+
+			terminal.parser.registerOscHandler(99, (payload: string) => {
+				console.log('OSC 99:', payload);
+				session.rawCwd = payload;
+				return false;
+			});
+
+			terminal.parser.registerOscHandler(0, (payload: string) => {
+				console.log('OSC 0:', payload);
+				if (tabId) {
+					tabs.setName(tabId, payload);
+					session.title = payload;
+				}
+				return false;
+			});
+
+			terminal.parser.registerOscHandler(2, (payload: string) => {
+				console.log('OSC 2:', payload);
 				if (tabId) {
 					tabs.setName(tabId, payload);
 					session.title = payload;
