@@ -33,7 +33,7 @@
 		nodeId: number | undefined
 	) => void;
 
-	console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${sessionId}`);
+	// console.log(`tabId: ${tabId} | nodeId: ${nodeId} | session: ${sessionId}`);
 
 	export function SerializeScreen() {
 		if (terminal) {
@@ -59,10 +59,6 @@
 	let area = derived([height, width], ([$height, $width]) => $height * $width);
 	let oscCode = 2;
 
-	height.subscribe(($h) => {
-		console.log($h);
-	});
-
 	let update = () => {
 		resizing = false;
 		fitAddon.fit();
@@ -84,7 +80,7 @@
 	onMount(() => {
 		// console.log(`onMount for ${tabId}:${nodeId}`);
 		const areaUnsub = area.subscribe(($area) => {
-			console.log(`resizing for tab ${tabId} : node ${nodeId}`);
+			// console.log(`resizing for tab ${tabId} : node ${nodeId}`);
 			if ($area !== 0) {
 				requestUpdate();
 			}
@@ -109,7 +105,7 @@
 
 		return async () => {
 			// console.log(`terminal unmounting for ${tabId}:${nodeId}`);
-			console.log(shellExited);
+			// console.log(shellExited);
 			if (!shellExited) {
 				session?.cacheScrollbackBuffer(SerializeScreen());
 			}
@@ -133,7 +129,7 @@
 		// console.log(node.parentElement?.style.backgroundColor);
 
 		terminal = new Terminal({
-			fontFamily: 'Consolas, FiraMono Nerd Font Mono, Monospace',
+			fontFamily: $userConfiguration.shell.fonts,
 			theme: {
 				background: '#020617'
 			}
@@ -194,41 +190,28 @@
 
 			terminal.attachCustomKeyEventHandler(handleKeyboardEvent);
 
-			terminal.parser.registerOscHandler(7, (payload: string) => {
-				console.log('OSC 7:', payload);
-				session.rawCwd = payload;
-				return false;
-			});
-
-			terminal.parser.registerOscHandler(51, (payload: string) => {
-				console.log('OSC 51:', payload);
-				session.rawCwd = payload;
-				return false;
-			});
-
-			terminal.parser.registerOscHandler(99, (payload: string) => {
-				console.log('OSC 99:', payload);
-				session.rawCwd = payload;
-				return false;
-			});
-
-			terminal.parser.registerOscHandler(0, (payload: string) => {
-				console.log('OSC 0:', payload);
-				if (tabId) {
-					tabs.setName(tabId, payload);
-					session.title = payload;
+			// handle directory change
+			terminal.parser.registerOscHandler(
+				$userConfiguration.shell.changeDirectoryOscCode,
+				(payload: string) => {
+					// console.log('change directory to:', payload);
+					session.rawCwd = payload;
+					return false;
 				}
-				return false;
-			});
+			);
 
-			terminal.parser.registerOscHandler(2, (payload: string) => {
-				console.log('OSC 2:', payload);
-				if (tabId) {
-					tabs.setName(tabId, payload);
-					session.title = payload;
+			// handle window title change
+			terminal.parser.registerOscHandler(
+				$userConfiguration.shell.changeWindowTitleOscCode,
+				(payload: string) => {
+					// console.log('change window title to:', payload);
+					if (tabId) {
+						tabs.setName(tabId, payload);
+						session.title = payload;
+					}
+					return false;
 				}
-				return false;
-			});
+			);
 
 			session.start();
 		}

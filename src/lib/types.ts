@@ -12,6 +12,9 @@ export interface Shell {
 	args: string[];
 	env: { [key: string]: string };
 	bell: boolean;
+	fonts: string;
+	changeDirectoryOscCode: number;
+	changeWindowTitleOscCode: number;
 }
 
 export interface SystemInfo {

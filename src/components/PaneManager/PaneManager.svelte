@@ -7,7 +7,7 @@
 	export let tabId: string;
 
 	export let tree: TreeNode<PaneData>;
-	console.log(tree);
+	// console.log(tree);
 	export let disspatchCommand: (
 		screenCommand: string,
 		callerTabId?: string,

@@ -48,6 +48,9 @@ pub struct Shell {
     pub args: Vec<String>,
     pub env: HashMap<String, String>,
     pub bell: bool,
+    pub fonts: String,
+    pub change_directory_osc_code: i32,
+    pub change_window_title_osc_code: i32,
 }
 
 // #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
@@ -63,6 +66,12 @@ pub fn generate_default_user_config() -> UserConfigFS {
             args: Vec::default(),
             env: HashMap::default(),
             bell: true,
+            fonts: String::from("Consolas, Monospace"),
+            change_directory_osc_code: 7,
+            #[cfg(target_os = "windows")]
+            change_window_title_osc_code: 0,
+            #[cfg(not(target_os = "windows"))]
+            change_window_title_osc_code: 2,
         },
         keymaps: HashMap::from([
             (String::from("edit:copy"), String::from("ctrl+shift+c")),
