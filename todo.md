@@ -18,10 +18,11 @@
 - [x] 16. Investigate why child_killer call throws error
 - [ ] 17. add tests for better coverage and/or ignore some files
 - [x] 18. Remove session from appstate, clean up Rust resources
-- [ ] 19. Hover text for full tab name/path?
+- [x] 19. Hover text for full tab name/path?
 - [x] 20. Change tab name when focusing different pane on tab
 - [x] 21. Add fonts to settings file
 - [x] 22. Set OSC numbers in settings file
+- [ ] 23. Close instance after e2e tests
 
 ## Bugs
 

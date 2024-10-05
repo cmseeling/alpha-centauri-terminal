@@ -5,8 +5,9 @@
 	import { melt } from "@melt-ui/svelte";
   import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 
-  export let triggerItem: TabInfo
-  export let closeTabClicked: (tabId: string) => void
+  export let triggerItem: TabInfo;
+  export let index: number;
+  export let closeTabClicked: (tabId: string) => void;
 
   $: tooltipTrigger = triggerItem.toolTip.elements.trigger;
   $: tooltipContent = triggerItem.toolTip.elements.content;
@@ -16,16 +17,16 @@
 
 <div
   use:melt={$trigger(triggerItem.id)}
-  class="trigger grow flex h-6 cursor-pointer items-center justify-center
+  class="trigger grow flex h-6 cursor-pointer items-center justify-center rounded-tr-md
     border-r border-black bg-gray-950 pe-2 ps-2 text-white opacity-75 data-[state=active]:opacity-100"
 >
-  <span use:melt={$tooltipTrigger} class="w-full overflow-hidden whitespace-nowrap text-center">
+  <span use:melt={$tooltipTrigger} class="w-full overflow-hidden whitespace-nowrap text-center" data-testid={`tab-index-${index}`}>
     {triggerItem.name}
   </span>
   <button
     class="border-0 bg-gray-950 pl-2 pt-0.5 text-white"
     on:click={() => closeTabClicked(triggerItem.id)}
-    data-testid={`close-tab-${triggerItem.id}`}
+    data-testid={`close-tab-${index}`}
   >
     <CloseCircleOutline style="font-size:1em" />
   </button>

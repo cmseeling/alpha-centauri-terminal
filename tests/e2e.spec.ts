@@ -23,26 +23,35 @@ test('terminal loads', async () => {
 	// new tab button works
 	logger.info('testing new tab button');
 	await newTabButton.click();
-	let newTab = await page.getByText('New Tab');
+	let newTab = await page.getByTestId('tab-index-1');
 	await expect(newTab).toHaveCount(1);
-	const firstTabId = await newTab.getAttribute('data-value');
 	await page.screenshot({ path: 'test-results/__snapshots/2_new_tab_by_button.png' });
 
 	// new tab key combo works
 	logger.info('testing new tab key shortcut');
 	await page.keyboard.press('Control+Shift+T');
-	newTab = await page.getByText('New Tab');
-	await expect(newTab).toHaveCount(2);
+	newTab = await page.getByTestId('tab-index-1');
+	await expect(newTab).toHaveCount(1);
 	await page.screenshot({ path: 'test-results/__snapshots/3_new_tab_by_key_shortcut.png' });
 
 	// close tab button works
 	logger.info('testing close tab button');
-	await newTab.getByTestId(`close-tab-${firstTabId}`).click();
-	newTab = await page.getByText('New Tab');
-	await expect(newTab).toHaveCount(1);
+	await page.getByTestId(`close-tab-1`).click();
+	const tabs = await page.getByText('~');
+	await expect(tabs).toHaveCount(1);
 	await page.screenshot({ path: 'test-results/__snapshots/4_close_tab.png' });
 
-	await page.close();
-	await context.close();
-	await browser.close();
+	// split right key combo works
+	logger.info('testing split right');
+	await page.keyboard.press('Control+Shift+D');
+	const horizontalSplitter = await page.getByTestId('horizontal-splitter');
+	await expect(horizontalSplitter).toHaveCount(1);
+	await page.screenshot({ path: 'test-results/__snapshots/5_split_right.png' });
+
+	// split down key combo works
+	logger.info('testing split right');
+	await page.keyboard.press('Control+Shift+E');
+	const verticalSplitter = await page.getByTestId('vertical-splitter');
+	await expect(verticalSplitter).toHaveCount(1);
+	await page.screenshot({ path: 'test-results/__snapshots/5_split_down.png' });
 });

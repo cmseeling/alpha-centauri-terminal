@@ -4,6 +4,7 @@ import { expect, test, vi } from 'vitest';
 import { tabs } from '$lib/store';
 
 import TabManager from './TabManager.svelte';
+import { createTooltip } from '@melt-ui/svelte';
 
 const mockPaneData = {
 	nodeId: 1
@@ -15,7 +16,16 @@ const mockTabInfo1 = {
 	sessionTree: {
 		data: mockPaneData,
 		childNodes: []
-	}
+	},
+	toolTip: createTooltip({
+    positioning: {
+      placement: 'bottom',
+    },
+    openDelay: 1000,
+    closeDelay: 0,
+    closeOnPointerDown: false,
+    forceVisible: true,
+  })
 };
 
 const mockTabInfo2 = {
@@ -24,7 +34,16 @@ const mockTabInfo2 = {
 	sessionTree: {
 		data: mockPaneData,
 		childNodes: []
-	}
+	},
+	toolTip: createTooltip({
+    positioning: {
+      placement: 'bottom',
+    },
+    openDelay: 1000,
+    closeDelay: 0,
+    closeOnPointerDown: false,
+    forceVisible: true,
+  })
 };
 
 test('render the tab bar', async () => {
