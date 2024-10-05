@@ -57,7 +57,6 @@
 	let height = writable(0);
 	let width = writable(0);
 	let area = derived([height, width], ([$height, $width]) => $height * $width);
-	let oscCode = 2;
 
 	let update = () => {
 		resizing = false;
@@ -87,19 +86,17 @@
 		});
 
 		const tabUnsub = activeTab.subscribe(($activeTab) => {
+			console.log($activeTab)
 			if ($activeTab === tabId && terminal) {
+				console.log('attempting to set focus')
 				setTimeout(() => {
 					requestUpdate();
 					terminal.scrollToBottom();
 					terminal.focus();
-				}, 10);
+					terminal.textarea?.focus();
+				}, 100);
 			}
 		});
-
-		// why you gotta be weird windows?
-		if ($systemInfo.system === 'windows') {
-			oscCode = 0;
-		}
 
 		loaded = true;
 

@@ -4,7 +4,7 @@
 - [x] 2. Add Rust tests
 - [x] 3. Implement copy/paste/other editor commands
 - [x] 4. Implement window split and resizing
-- [ ] 5. Menu bar overhaul
+- [x] 5. Menu bar overhaul
 - [x] 6. Figure out deep magic of current directory and current shell name
 - [x] 7. Tab renaming
 - [x] 8. Update README
@@ -30,4 +30,4 @@
 - [x] Need to focus a terminal on the current tab when pane closes that had focus
 - [ ] Opening more than 2 panes in the same direction does not resize existing panes evenly
 - [x] orphaned processes when - create new shell session, close tab
-- [ ] changing tabs does not focus the active tab text area
+- [x] changing tabs does not focus the active tab text area
