@@ -1,22 +1,22 @@
 {
-	"shell": {
-		"program": "bash",
-		"args": [],
-		"env": {},
-		"bell": true,
-		"fonts": "Consolas, Monospace",
-		"changeDirectoryOscCode": 7,
-		"changeWindowTitleOscCode": 0
-	},
-	"keymaps": {
-		"edit:copy": "ctrl+shift+c",
-		"edit:paste": "ctrl+shift+v",
-		"edit:select_all": "ctrl+shift+a",
-		"edit:interrupt": "ctrl+c",
-		"window:new_tab": "ctrl+shift+t",
-		"window:next_tab": "ctrl+shift+ArrowRight",
-		"window:prev_tab": "ctrl+shift+ArrowLeft",
-		"window:split_down": "ctrl+shift+e",
-		"window:split_right": "ctrl+shift+d"
-	}
+  "shell": {
+    "program": "bash",
+    "args": [],
+    "env": {},
+    "bell": true,
+    "fonts": "Consolas, Monospace",
+    "changeDirectoryOscCode": 7,
+    "changeWindowTitleOscCode": 0
+  },
+  "keymaps": {
+    "edit:copy": "ctrl+shift+c",
+    "edit:paste": "ctrl+shift+v",
+    "edit:select_all": "ctrl+shift+a",
+    "edit:interrupt": "ctrl+c",
+    "window:new_tab": "ctrl+shift+t",
+    "window:next_tab": "ctrl+shift+ArrowRight",
+    "window:prev_tab": "ctrl+shift+ArrowLeft",
+    "window:split_down": "ctrl+shift+e",
+    "window:split_right": "ctrl+shift+d"
+  }
 }

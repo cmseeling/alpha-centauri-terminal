@@ -10,26 +10,26 @@ const rootDir = path.resolve(testDir, '..');
 const loggingDir = path.resolve(rootDir, 'test-results/logging');
 
 const customFormat = winston.format.printf(({ level, message, timestamp }) => {
-	return `${timestamp} | ${level} |> ${message}`;
+  return `${timestamp} | ${level} |> ${message}`;
 });
 
 const getLogger = (infoLogFileName: string, errorLogFileName: string) =>
-	winston.createLogger({
-		format: winston.format.combine(
-			winston.format.timestamp({ format: () => new Date().toISOString() }),
-			customFormat
-		),
-		transports: [
-			new winston.transports.Console({ level: 'debug' }),
-			new winston.transports.File({
-				filename: path.join(loggingDir, infoLogFileName),
-				level: 'info'
-			}),
-			new winston.transports.File({
-				filename: path.join(loggingDir, errorLogFileName),
-				level: 'error'
-			})
-		]
-	});
+  winston.createLogger({
+    format: winston.format.combine(
+      winston.format.timestamp({ format: () => new Date().toISOString() }),
+      customFormat
+    ),
+    transports: [
+      new winston.transports.Console({ level: 'debug' }),
+      new winston.transports.File({
+        filename: path.join(loggingDir, infoLogFileName),
+        level: 'info'
+      }),
+      new winston.transports.File({
+        filename: path.join(loggingDir, errorLogFileName),
+        level: 'error'
+      })
+    ]
+  });
 
 export default getLogger;

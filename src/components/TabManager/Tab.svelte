@@ -1,8 +1,8 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
-	import { trigger } from "$lib/store";
-	import type { TabInfo } from "$lib/types";
-	import { melt } from "@melt-ui/svelte";
+  import { trigger } from '$lib/store';
+  import type { TabInfo } from '$lib/types';
+  import { melt } from '@melt-ui/svelte';
   import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
 
   export let triggerItem: TabInfo;
@@ -17,10 +17,14 @@
 
 <div
   use:melt={$trigger(triggerItem.id)}
-  class="trigger grow flex h-6 cursor-pointer items-center justify-center rounded-tr-md
+  class="trigger flex h-6 grow cursor-pointer items-center justify-center rounded-tr-md
     border-r border-black bg-gray-950 pe-2 ps-2 text-white opacity-75 data-[state=active]:opacity-100"
 >
-  <span use:melt={$tooltipTrigger} class="w-full overflow-hidden whitespace-nowrap text-center" data-testid={`tab-index-${index}`}>
+  <span
+    use:melt={$tooltipTrigger}
+    class="w-full overflow-hidden whitespace-nowrap text-center"
+    data-testid={`tab-index-${index}`}
+  >
     {triggerItem.name}
   </span>
   <button
@@ -37,7 +41,7 @@
       class=" z-10 rounded-lg bg-white shadow"
     >
       <div use:melt={$tooltipArrow} />
-      <p class="px-4 py-1 text-magnum-700">{triggerItem.name}</p>
+      <p class="text-magnum-700 px-4 py-1">{triggerItem.name}</p>
     </div>
   {/if}
 </div>

@@ -7,82 +7,82 @@ import TabManager from './TabManager.svelte';
 import { createTooltip } from '@melt-ui/svelte';
 
 const mockPaneData = {
-	nodeId: 1
+  nodeId: 1
 };
 
 const mockTabInfo1 = {
-	id: '1',
-	name: 'Tab 1',
-	sessionTree: {
-		data: mockPaneData,
-		childNodes: []
-	},
-	toolTip: createTooltip({
+  id: '1',
+  name: 'Tab 1',
+  sessionTree: {
+    data: mockPaneData,
+    childNodes: []
+  },
+  toolTip: createTooltip({
     positioning: {
-      placement: 'bottom',
+      placement: 'bottom'
     },
     openDelay: 1000,
     closeDelay: 0,
     closeOnPointerDown: false,
-    forceVisible: true,
+    forceVisible: true
   })
 };
 
 const mockTabInfo2 = {
-	id: '2',
-	name: 'Tab 2',
-	sessionTree: {
-		data: mockPaneData,
-		childNodes: []
-	},
-	toolTip: createTooltip({
+  id: '2',
+  name: 'Tab 2',
+  sessionTree: {
+    data: mockPaneData,
+    childNodes: []
+  },
+  toolTip: createTooltip({
     positioning: {
-      placement: 'bottom',
+      placement: 'bottom'
     },
     openDelay: 1000,
     closeDelay: 0,
     closeOnPointerDown: false,
-    forceVisible: true,
+    forceVisible: true
   })
 };
 
 test('render the tab bar', async () => {
-	tabs.set([mockTabInfo1]);
-	render(TabManager);
-	const button = screen.getByTestId('add-new-tab');
+  tabs.set([mockTabInfo1]);
+  render(TabManager);
+  const button = screen.getByTestId('add-new-tab');
 
-	expect(button).toBeInTheDocument();
+  expect(button).toBeInTheDocument();
 });
 
 test('new tab button dispatches event', async () => {
-	tabs.set([mockTabInfo1]);
-	const user = userEvent.setup();
-	const { component } = render(TabManager);
-	const mock = vi.fn(() => {});
-	component.$on('newtab', mock);
+  tabs.set([mockTabInfo1]);
+  const user = userEvent.setup();
+  const { component } = render(TabManager);
+  const mock = vi.fn(() => {});
+  component.$on('newtab', mock);
 
-	const button = screen.getByTestId('add-new-tab');
-	expect(button).toBeInTheDocument();
-	await user.click(button);
+  const button = screen.getByTestId('add-new-tab');
+  expect(button).toBeInTheDocument();
+  await user.click(button);
 
-	expect(mock).toHaveBeenCalledOnce();
+  expect(mock).toHaveBeenCalledOnce();
 });
 
 test('close button dispatches event', async () => {
-	tabs.set([mockTabInfo1, mockTabInfo2]);
-	const user = userEvent.setup();
-	const { component } = render(TabManager);
+  tabs.set([mockTabInfo1, mockTabInfo2]);
+  const user = userEvent.setup();
+  const { component } = render(TabManager);
 
-	let eventTabId = '';
-	const mock = vi.fn((event) => {
-		eventTabId = event.detail.tabId;
-	});
-	component.$on('closetab', mock);
+  let eventTabId = '';
+  const mock = vi.fn((event) => {
+    eventTabId = event.detail.tabId;
+  });
+  component.$on('closetab', mock);
 
-	const closeTabButton = screen.getByTestId('close-tab-1');
-	expect(closeTabButton).toBeInTheDocument();
-	await user.click(closeTabButton);
+  const closeTabButton = screen.getByTestId('close-tab-1');
+  expect(closeTabButton).toBeInTheDocument();
+  await user.click(closeTabButton);
 
-	expect(mock).toHaveBeenCalledOnce();
-	expect(eventTabId).toBe('1');
+  expect(mock).toHaveBeenCalledOnce();
+  expect(eventTabId).toBe('1');
 });

@@ -1,12 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { CreateSessionInputs, SessionExitStatus, ShellSession } from '$lib/types';
 import {
-	TAURI_COMMAND_CREATE_SESSION,
-	TAURI_COMMAND_RESIZE,
-	TAURI_COMMAND_WRITE_TO_SESSION,
-	TAURI_COMMAND_END_SESSION,
-	TAURI_COMMAND_READ_FROM_SESSION,
-	TAURI_COMMAND_WAIT_FOR_EXIT
+  TAURI_COMMAND_CREATE_SESSION,
+  TAURI_COMMAND_RESIZE,
+  TAURI_COMMAND_WRITE_TO_SESSION,
+  TAURI_COMMAND_END_SESSION,
+  TAURI_COMMAND_READ_FROM_SESSION,
+  TAURI_COMMAND_WAIT_FOR_EXIT
 } from '$lib/constants';
 
 const _sessions = new Map<number, ShellSession>();
@@ -20,159 +20,159 @@ const _sessions = new Map<number, ShellSession>();
 // }
 
 const createSession = async ({
-	args,
-	cols,
-	rows,
-	currentWorkingDirectory,
-	env,
-	referringSessionId
+  args,
+  cols,
+  rows,
+  currentWorkingDirectory,
+  env,
+  referringSessionId
 }: CreateSessionInputs) => {
-	let pid: number | null = null;
-	// eslint-disable-next-line prefer-const
-	let rawCwd = '';
-	// eslint-disable-next-line prefer-const
-	let title = '';
-	let scrollbackBuffer = '';
-	let shellOutputObservers: ((data: string) => void)[] = [];
-	let shellExitObservers: ((exitStatus: SessionExitStatus) => void)[] = [];
-	let shellExited = false;
-	let killCommandSent = false;
+  let pid: number | null = null;
+  // eslint-disable-next-line prefer-const
+  let rawCwd = '';
+  // eslint-disable-next-line prefer-const
+  let title = '';
+  let scrollbackBuffer = '';
+  let shellOutputObservers: ((data: string) => void)[] = [];
+  let shellExitObservers: ((exitStatus: SessionExitStatus) => void)[] = [];
+  let shellExited = false;
+  let killCommandSent = false;
 
-	pid = await invoke<number>(TAURI_COMMAND_CREATE_SESSION, {
-		args,
-		cols,
-		rows,
-		currentWorkingDirectory,
-		env,
-		referringSessionId
-	});
-	let sessionActive = true;
+  pid = await invoke<number>(TAURI_COMMAND_CREATE_SESSION, {
+    args,
+    cols,
+    rows,
+    currentWorkingDirectory,
+    env,
+    referringSessionId
+  });
+  let sessionActive = true;
 
-	const resize = (cols: number, rows: number) => {
-		if (pid != null) {
-			invoke(TAURI_COMMAND_RESIZE, { pid, cols, rows });
-		}
-	};
+  const resize = (cols: number, rows: number) => {
+    if (pid != null) {
+      invoke(TAURI_COMMAND_RESIZE, { pid, cols, rows });
+    }
+  };
 
-	const write = (data: string) => {
-		if (pid != null) {
-			invoke(TAURI_COMMAND_WRITE_TO_SESSION, { pid, data });
-		}
-	};
+  const write = (data: string) => {
+    if (pid != null) {
+      invoke(TAURI_COMMAND_WRITE_TO_SESSION, { pid, data });
+    }
+  };
 
-	const kill = () => {
-		if (pid != null) {
-			invoke(TAURI_COMMAND_END_SESSION, { pid });
-			killCommandSent = true;
-		}
-	};
+  const kill = () => {
+    if (pid != null) {
+      invoke(TAURI_COMMAND_END_SESSION, { pid });
+      killCommandSent = true;
+    }
+  };
 
-	const onShellOutput = (callback: (data: string) => void) => {
-		shellOutputObservers.push(callback);
-		if (scrollbackBuffer !== '') {
-			callback(scrollbackBuffer);
-			scrollbackBuffer = '';
-		}
-		return () => {
-			shellOutputObservers = shellOutputObservers.filter((o) => o !== callback);
-		};
-	};
+  const onShellOutput = (callback: (data: string) => void) => {
+    shellOutputObservers.push(callback);
+    if (scrollbackBuffer !== '') {
+      callback(scrollbackBuffer);
+      scrollbackBuffer = '';
+    }
+    return () => {
+      shellOutputObservers = shellOutputObservers.filter((o) => o !== callback);
+    };
+  };
 
-	const onShellExit = (callback: (exitStatus: SessionExitStatus) => void) => {
-		shellExitObservers.push(callback);
-		return () => {
-			shellExitObservers = shellExitObservers.filter((o) => o !== callback);
-		};
-	};
+  const onShellExit = (callback: (exitStatus: SessionExitStatus) => void) => {
+    shellExitObservers.push(callback);
+    return () => {
+      shellExitObservers = shellExitObservers.filter((o) => o !== callback);
+    };
+  };
 
-	const start = () => {
-		_listenToReader();
-		_waitForExit();
-	};
+  const start = () => {
+    _listenToReader();
+    _waitForExit();
+  };
 
-	const cacheScrollbackBuffer = (buffer: string) => {
-		scrollbackBuffer = buffer;
-		// don't want the buffer taking up memory for too long if it never gets consumed
-		setTimeout(() => {
-			scrollbackBuffer = '';
-		}, 3000);
-	};
+  const cacheScrollbackBuffer = (buffer: string) => {
+    scrollbackBuffer = buffer;
+    // don't want the buffer taking up memory for too long if it never gets consumed
+    setTimeout(() => {
+      scrollbackBuffer = '';
+    }, 3000);
+  };
 
-	const _listenToReader = async () => {
-		// listen to session output
-		try {
-			while (sessionActive && pid !== null) {
-				// console.log('reading');
-				if (shellOutputObservers.length > 0) {
-					const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
-					// console.log(shellData);
-					// const hex = toHex(shellData);
-					// console.log(hex);
-					shellOutputObservers.forEach((o) => {
-						o(shellData);
-					});
-				}
-			}
-		} catch (e: unknown) {
-			console.error('Reading Error: ', e);
-		}
-	};
+  const _listenToReader = async () => {
+    // listen to session output
+    try {
+      while (sessionActive && pid !== null) {
+        // console.log('reading');
+        if (shellOutputObservers.length > 0) {
+          const shellData = await invoke<string>(TAURI_COMMAND_READ_FROM_SESSION, { pid });
+          // console.log(shellData);
+          // const hex = toHex(shellData);
+          // console.log(hex);
+          shellOutputObservers.forEach((o) => {
+            o(shellData);
+          });
+        }
+      }
+    } catch (e: unknown) {
+      console.error('Reading Error: ', e);
+    }
+  };
 
-	const _waitForExit = async () => {
-		// console.log('waiting');
-		if (shellExited) {
-			// console.log('exited');
-			return;
-		}
+  const _waitForExit = async () => {
+    // console.log('waiting');
+    if (shellExited) {
+      // console.log('exited');
+      return;
+    }
 
-		const exitCode = await invoke<number>(TAURI_COMMAND_WAIT_FOR_EXIT, { pid });
-		// console.log(exitCode);
-		shellExited = true;
-		if (shellExitObservers.length > 0) {
-			shellExitObservers.forEach((o) => {
-				o({
-					exitCode,
-					success: exitCode === 0 || (exitCode === 1 && killCommandSent)
-				});
-			});
-		}
-	};
+    const exitCode = await invoke<number>(TAURI_COMMAND_WAIT_FOR_EXIT, { pid });
+    // console.log(exitCode);
+    shellExited = true;
+    if (shellExitObservers.length > 0) {
+      shellExitObservers.forEach((o) => {
+        o({
+          exitCode,
+          success: exitCode === 0 || (exitCode === 1 && killCommandSent)
+        });
+      });
+    }
+  };
 
-	const dispose = () => {
-		// console.log(`stopping shell session with pid = ${pid}`);
-		kill();
-		sessionActive = false;
-		pid = null;
-		shellExited = true;
-	};
+  const dispose = () => {
+    // console.log(`stopping shell session with pid = ${pid}`);
+    kill();
+    sessionActive = false;
+    pid = null;
+    shellExited = true;
+  };
 
-	const returnValue: ShellSession = {
-		pid,
-		rawCwd,
-		title,
-		resize,
-		write,
-		kill,
-		start,
-		cacheScrollbackBuffer,
-		onShellOutput,
-		onShellExit,
-		dispose
-	};
+  const returnValue: ShellSession = {
+    pid,
+    rawCwd,
+    title,
+    resize,
+    write,
+    kill,
+    start,
+    cacheScrollbackBuffer,
+    onShellOutput,
+    onShellExit,
+    dispose
+  };
 
-	_sessions.set(pid, returnValue);
+  _sessions.set(pid, returnValue);
 
-	return returnValue;
+  return returnValue;
 };
 
 export const sessions = {
-	createSession,
-	get: (sessionId: number) => _sessions.get(sessionId),
-	remove: (sessionId: number) => {
-		const session = _sessions.get(sessionId);
-		if (session) {
-			session.dispose();
-			_sessions.delete(sessionId);
-		}
-	}
+  createSession,
+  get: (sessionId: number) => _sessions.get(sessionId),
+  remove: (sessionId: number) => {
+    const session = _sessions.get(sessionId);
+    if (session) {
+      session.dispose();
+      _sessions.delete(sessionId);
+    }
+  }
 };

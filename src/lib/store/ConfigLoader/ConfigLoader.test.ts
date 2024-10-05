@@ -11,51 +11,51 @@ import ConfigLoader from './ConfigLoader.svelte';
 
 const configJson = '{"shell":{"program":"bash","args":[],"env":{},"bell":true},"keymaps":[]}';
 const expectedConfigStore = {
-	loaded: true,
-	shell: {
-		program: 'bash',
-		args: [],
-		env: {},
-		bell: true
-	},
-	keymaps: []
+  loaded: true,
+  shell: {
+    program: 'bash',
+    args: [],
+    env: {},
+    bell: true
+  },
+  keymaps: []
 };
 
 const systemInfoJson = '{"system":"system"}';
 const expectedInfoStore = {
-	system: 'system'
+  system: 'system'
 };
 
 // jsdom doesn't come with a WebCrypto implementation
 beforeAll(() => {
-	Object.defineProperty(window, 'crypto', {
-		value: {
-			getRandomValues: (buffer: any) => {
-				return randomFillSync(buffer);
-			}
-		}
-	});
+  Object.defineProperty(window, 'crypto', {
+    value: {
+      getRandomValues: (buffer: any) => {
+        return randomFillSync(buffer);
+      }
+    }
+  });
 });
 
 test('load user configuration and system info', async () => {
-	mockIPC((cmd, args) => {
-		if (cmd === TAURI_COMMAND_GET_USER_CONFIG) {
-			return configJson;
-		}
-		if (cmd === TAURI_COMMAND_GET_SYSTEM_INFO) {
-			return systemInfoJson;
-		}
-	});
+  mockIPC((cmd, args) => {
+    if (cmd === TAURI_COMMAND_GET_USER_CONFIG) {
+      return configJson;
+    }
+    if (cmd === TAURI_COMMAND_GET_SYSTEM_INFO) {
+      return systemInfoJson;
+    }
+  });
 
-	const setUserConfigSpy = vi.spyOn(userConfiguration, 'set');
-	const setSysInfoSpy = vi.spyOn(systemInfo, 'set');
+  const setUserConfigSpy = vi.spyOn(userConfiguration, 'set');
+  const setSysInfoSpy = vi.spyOn(systemInfo, 'set');
 
-	render(ConfigLoader);
+  render(ConfigLoader);
 
-	await waitFor(() => {
-		expect(setUserConfigSpy).toHaveBeenCalledWith(expectedConfigStore);
-	});
-	await waitFor(() => {
-		expect(setSysInfoSpy).toHaveBeenCalledWith(expectedInfoStore);
-	});
+  await waitFor(() => {
+    expect(setUserConfigSpy).toHaveBeenCalledWith(expectedConfigStore);
+  });
+  await waitFor(() => {
+    expect(setSysInfoSpy).toHaveBeenCalledWith(expectedInfoStore);
+  });
 });
