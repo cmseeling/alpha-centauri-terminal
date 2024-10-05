@@ -2,6 +2,7 @@ import type { Direction, PaneData, TabInfo, TreeNode } from '$lib/types';
 import { get, writable } from 'svelte/store';
 import { sessions } from './sessions';
 import { userConfiguration } from '.';
+import { createTooltip } from '@melt-ui/svelte';
 
 const lastNodeId = writable(0);
 export const tabActiveSessions = new Map<string, number>();
@@ -95,11 +96,21 @@ interface CreateTabArgs {
 const createTab = async ({ tabName, referringSessionId }: CreateTabArgs) => {
 	const newTabId = '' + new Date().getTime();
 	const newTree = await createSingleNode({ referringSessionId });
+	const toolTip = createTooltip({
+    positioning: {
+      placement: 'bottom',
+    },
+    openDelay: 1000,
+    closeDelay: 0,
+    closeOnPointerDown: false,
+    forceVisible: true,
+  });
 	update(($tabs) => {
 		$tabs.push({
 			id: newTabId,
 			name: tabName !== undefined ? tabName : 'New Tab',
-			sessionTree: newTree
+			sessionTree: newTree,
+			toolTip
 		});
 		return $tabs;
 	});

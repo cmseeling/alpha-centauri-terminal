@@ -81,4 +81,6 @@ export interface TabInfo {
 	id: string;
 	name: string;
 	sessionTree: TreeNode<PaneData>;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	toolTip: { elements: { trigger: any; content: any; arrow: any; }; states: { open: any; } };
 }
