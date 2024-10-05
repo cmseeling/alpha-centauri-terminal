@@ -17,14 +17,14 @@
 </script>
 
 <div use:melt={$root} class="flex h-full flex-col">
-	<div use:melt={$list} class="flex shrink-0 flex-row items-center bg-slate-400">
+	<div use:melt={$list} class="flex grow flex-row items-center bg-slate-400">
 		{#each $tabs as triggerItem (triggerItem.id)}
 			<div
 				use:melt={$trigger(triggerItem.id)}
-				class="trigger flex h-6 cursor-pointer items-center justify-center rounded-t-lg
+				class="trigger grow flex h-6 cursor-pointer items-center justify-center
 					border-r border-black bg-gray-950 pe-2 ps-2 text-white opacity-75 data-[state=active]:opacity-100"
 			>
-				<span class="w-40 overflow-hidden whitespace-nowrap text-center">
+				<span class="w-full overflow-hidden whitespace-nowrap text-center">
 					{triggerItem.name}
 				</span>
 				<button

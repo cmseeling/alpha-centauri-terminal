@@ -1,4 +1,5 @@
 {
+  "$schema": "https://schema.tauri.app/config/2.0.0",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -38,7 +39,9 @@
         "minWidth": 300,
         "minHeight": 200,
         "visible": false,
-        "additionalBrowserArgs": "--remote-debugging-port=9222"
+        "additionalBrowserArgs": "--remote-debugging-port=9222",
+        "decorations": false,
+        "transparent": true
       }
     ],
     "security": {
