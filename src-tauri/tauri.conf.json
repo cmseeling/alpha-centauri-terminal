@@ -17,8 +17,8 @@
       "icons/icon.ico"
     ]
   },
-  "productName": "alpha-centauri-terminal",
-  "version": "0.0.0",
+  "productName": "Alpha Centauri Terminal",
+  "version": "0.1.0",
   "identifier": "alpha-centauri-terminal",
   "plugins": {
     "cli": {
