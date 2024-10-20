@@ -15,7 +15,6 @@ tauri = { version = "2.0.0-rc", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 portable-pty = "0.8.1"
-dir = "0.1.2"
 tauri-plugin-window-state = { version = "2.0.0-rc" }
 tempdir = "0.3.7"
 kill_tree = { version = "0.2.4", features = ["tokio"] }

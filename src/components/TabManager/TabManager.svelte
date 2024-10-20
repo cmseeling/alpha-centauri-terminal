@@ -1,10 +1,8 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { fade } from 'svelte/transition';
   import { melt } from '@melt-ui/svelte';
-  import { content, list, root, trigger, tabs } from '$lib/store';
+  import { content, list, root, tabs } from '$lib/store';
   import Add from 'virtual:icons/mdi/add';
-  import CloseCircleOutline from 'virtual:icons/mdi/close-circle-outline';
   import Tab from './Tab.svelte';
 
   const dispatch = createEventDispatcher();

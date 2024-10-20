@@ -19,7 +19,6 @@ use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize}
 
 use serde::{Deserialize, Serialize};
 
-use dir::home_dir;
 use url::Url;
 
 mod usr_conf;
@@ -605,7 +604,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let config_file_path = arg_path.or_else(|| {
         #[cfg(debug_assertions)]
         println!("Attempting to retrieve user config file");
-        let home_path = home_dir().unwrap();
+        let home_path = app.path().app_config_dir().unwrap();
 
         #[cfg(target_os = "windows")]
         let default_path = Some(format!(
