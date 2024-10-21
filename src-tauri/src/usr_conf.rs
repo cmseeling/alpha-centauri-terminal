@@ -6,6 +6,8 @@ use std::{collections::HashMap, fmt, fs};
 pub struct UserConfigFS {
     pub shell: Shell,
     pub keymaps: HashMap<String, String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub theme: Option<Theme>,
 }
 
 impl fmt::Display for UserConfigFS {
@@ -22,6 +24,8 @@ impl fmt::Display for UserConfigFS {
 pub struct UserConfigJS {
     pub shell: Shell,
     pub keymaps: Vec<KeyCommandMap>,
+    #[serde(default)]
+    pub theme: Option<Theme>,
 }
 
 pub fn key_map_to_vector(h_map: HashMap<String, String>) -> Vec<KeyCommandMap> {
@@ -51,6 +55,53 @@ pub struct Shell {
     pub fonts: String,
     pub change_directory_osc_code: i32,
     pub change_window_title_osc_code: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Theme {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub foreground: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub background: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cursor: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cursor_accent: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub black: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub red: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub green: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub yellow: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub blue: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub magenta: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cyan: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub white: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bright_black: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bright_red: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bright_green: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bright_yellow: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bright_blue: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bright_magenta: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bright_cyan: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bright_white: Option<String>,
 }
 
 // #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
@@ -99,6 +150,29 @@ pub fn generate_default_user_config() -> UserConfigFS {
                 String::from("ctrl+shift+e"),
             ),
         ]),
+        theme: Some(Theme {
+            foreground: None,
+            background: Some(String::from("#000000")),
+            cursor: None,
+            cursor_accent: None,
+            selection: None,
+            black: None,
+            red: None,
+            green: None,
+            yellow: None,
+            blue: None,
+            magenta: None,
+            cyan: None,
+            white: None,
+            bright_black: None,
+            bright_red: None,
+            bright_green: None,
+            bright_yellow: None,
+            bright_blue: None,
+            bright_magenta: None,
+            bright_cyan: None,
+            bright_white: None,
+        }),
     }
 }
 

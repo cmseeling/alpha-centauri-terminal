@@ -540,6 +540,7 @@ async fn get_user_config(
     let config = usr_conf::UserConfigJS {
         shell: state_config.shell.clone(),
         keymaps: usr_conf::key_map_to_vector(state_config.keymaps.clone()),
+        theme: state_config.theme.clone(),
     };
 
     serde_json::to_string(&config).map_err(|e| {
