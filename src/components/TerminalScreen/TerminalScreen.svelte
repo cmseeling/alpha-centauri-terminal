@@ -127,9 +127,10 @@
 
     terminal = new Terminal({
       fontFamily: $userConfiguration.shell.fonts,
-      theme: {
-        background: '#020617'
-      }
+      // theme: {
+      //   background: '#020617'
+      // }
+      theme: $userConfiguration.theme
     });
     terminal.open(node);
     terminal.focus();

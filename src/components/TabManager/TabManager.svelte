@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { melt } from '@melt-ui/svelte';
-  import { content, list, root, tabs } from '$lib/store';
+  import { content, list, root, tabs, userConfiguration } from '$lib/store';
   import Add from 'virtual:icons/mdi/add';
   import Tab from './Tab.svelte';
 
@@ -29,7 +29,10 @@
       <Add style="font-size:1em" />
     </button>
   </div>
-  <div class="h-full overflow-y-hidden bg-gray-950">
+  <div
+    class="h-full overflow-y-hidden bg-[var(--bg-color)]"
+    style="--bg-color:{$userConfiguration.theme?.background}"
+  >
     {#each $tabs as tabItem, index (tabItem.id)}
       <div use:melt={$content(tabItem.id)} class="h-full">
         <slot tabId={tabItem.id} tabIndex={index} />

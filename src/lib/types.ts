@@ -17,6 +17,30 @@ export interface Shell {
   changeWindowTitleOscCode: number;
 }
 
+export interface Theme {
+  foreground?: string;
+  background?: string;
+  cursor?: string;
+  cursorAccent?: string;
+  selection?: string;
+  black?: string;
+  red?: string;
+  green?: string;
+  yellow?: string;
+  blue?: string;
+  magenta?: string;
+  cyan?: string;
+  white?: string;
+  brightBlack?: string;
+  brightRed?: string;
+  brightGreen?: string;
+  brightYellow?: string;
+  brightBlue?: string;
+  brightMagenta?: string;
+  brightCyan?: string;
+  brightWhite?: string;
+}
+
 export interface SystemInfo {
   system: 'unix' | 'windows' | 'macos' | 'unknown';
 }
@@ -25,6 +49,7 @@ export interface UserConfiguration {
   window: Window;
   shell: Shell;
   keymaps: CommandKeyMap[];
+  theme?: Theme;
   loaded: boolean;
 }
 
