@@ -111,6 +111,10 @@ pub struct Theme {
 // }
 
 pub fn generate_default_user_config() -> UserConfigFS {
+    #[cfg(target_os = "macos")]
+    let mod_key = String::from("meta");
+    #[cfg(not(target_os = "macos"))]
+    let mod_key = String::from("ctrl");
     UserConfigFS {
         shell: Shell {
             program: String::default(),
@@ -125,29 +129,29 @@ pub fn generate_default_user_config() -> UserConfigFS {
             change_window_title_osc_code: 2,
         },
         keymaps: HashMap::from([
-            (String::from("edit:copy"), String::from("ctrl+shift+c")),
-            (String::from("edit:paste"), String::from("ctrl+shift+v")),
+            (String::from("edit:copy"), mod_key.clone() + "+shift+c"),
+            (String::from("edit:paste"), mod_key.clone() + "+shift+v"),
             (
                 String::from("edit:select_all"),
-                String::from("ctrl+shift+a"),
+                mod_key.clone() + "+shift+a",
             ),
-            (String::from("edit:interrupt"), String::from("ctrl+c")),
-            (String::from("window:new_tab"), String::from("ctrl+shift+t")),
+            (String::from("edit:interrupt"), mod_key.clone() + "+c"),
+            (String::from("window:new_tab"), mod_key.clone() + "+shift+t"),
             (
                 String::from("window:next_tab"),
-                String::from("ctrl+shift+ArrowRight"),
+                mod_key.clone() + "+shift+ArrowRight",
             ),
             (
                 String::from("window:prev_tab"),
-                String::from("ctrl+shift+ArrowLeft"),
+                mod_key.clone() + "+shift+ArrowLeft",
             ),
             (
                 String::from("window:split_right"),
-                String::from("ctrl+shift+d"),
+                mod_key.clone() + "+shift+d",
             ),
             (
                 String::from("window:split_down"),
-                String::from("ctrl+shift+e"),
+                mod_key + "+shift+e",
             ),
         ]),
         theme: Some(Theme {
