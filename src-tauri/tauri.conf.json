@@ -36,12 +36,8 @@
     "windows": [
       {
         "title": "Alpha CenTauri Terminal",
-        "minWidth": 300,
-        "minHeight": 200,
-        "visible": false,
-        "additionalBrowserArgs": "--remote-debugging-port=9222",
-        "decorations": true,
-        "transparent": false
+        "width": 800,
+        "height": 600
       }
     ],
     "security": {

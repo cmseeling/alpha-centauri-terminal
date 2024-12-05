@@ -606,6 +606,8 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         #[cfg(debug_assertions)]
         println!("Attempting to retrieve user config file");
         let home_path = app.path().app_config_dir().unwrap();
+        #[cfg(debug_assertions)]
+        println!("config directory: {:?}", home_path);
 
         #[cfg(target_os = "windows")]
         let default_path = Some(format!(
