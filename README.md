@@ -20,7 +20,7 @@ This is mostly a hobby project I started when [Hyper](https://hyper.is/) didn't 
 
 ### Configuration File Locations
 
-- Windows: C:\Users\{$UserName}\AppData\alpha-centauri-terminal\.alphacentauri.config.json
+- Windows: C:/Users/{$UserName}/AppData/alpha-centauri-terminal/.alphacentauri.config.json
 - Linux: ~/.config/alpha-centauri-terminal/.alphacentauri.config.json
 - MacOS: ~/Library/Application Support/alpha-centauri-terminal/.alphacentauri.config.json
 
