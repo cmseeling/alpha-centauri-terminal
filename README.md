@@ -18,6 +18,12 @@ This is mostly a hobby project I started when [Hyper](https://hyper.is/) didn't 
 2. Install node modules with `npm install`
 3. run with `cargo tauri dev` or build with `cargo tauri build`
 
+### Configuration File Locations
+
+- Windows: C:\Users\{$UserName}\AppData\alpha-centauri-terminal\.alphacentauri.config.json
+- Linux: ~/.config/alpha-centauri-terminal/.alphacentauri.config.json
+- MacOS: ~/Library/Application Support/alpha-centauri-terminal/.alphacentauri.config.json
+
 ### Running the Svelte unit/integration tests on Windows
 
 If the tests fail when exected on a Windows machine, try using the latest version of Powershell.
@@ -28,3 +34,5 @@ Otherwise refer to this [Stack Overflow question](https://stackoverflow.com/ques
 1. Start a dev instance with `cargo tauri dev`
 2. In a separate shell instance, run the test with `npm run test:e2e`
 3. The dev instance will close at the successful conclusion of the test
+
+Note: only working on Windows at the moment and may never work on WebKit runtimes (Linux and MacOS)
