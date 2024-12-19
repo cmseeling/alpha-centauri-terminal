@@ -102,6 +102,10 @@ pub struct Theme {
     pub bright_cyan: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bright_white: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tab_text_color: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inactive_tab_opacity: Option<String>,
 }
 
 // #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
@@ -176,6 +180,8 @@ pub fn generate_default_user_config() -> UserConfigFS {
             bright_magenta: None,
             bright_cyan: None,
             bright_white: None,
+            tab_text_color: Some(String::from("#ffffff")),
+            inactive_tab_opacity: Some(String::from("75"))
         }),
     }
 }

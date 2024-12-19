@@ -39,6 +39,8 @@ export interface Theme {
   brightMagenta?: string;
   brightCyan?: string;
   brightWhite?: string;
+  tabTextColor?: string;
+  inactiveTabOpacity?: string;
 }
 
 export interface SystemInfo {
